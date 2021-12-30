@@ -1,2 +1,3 @@
-# cc-gamemanager
-Game Manager mod for Cookie Clicker
+# Cookie Clicker Game Manager mod
+
+## [Workshop version](https://steamcommunity.com/sharedfiles/filedetails/?id=2699593599)
