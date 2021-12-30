@@ -6,7 +6,7 @@ if(GameManager === undefined) var GameManager = {
 	version: 1.001,
 	gameVersion: Game.version
 };
-if(typeof CCSE == 'undefined') Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js');
+if(!Steam) if(typeof CCSE == 'undefined') Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js');
 
 
 
@@ -41,9 +41,9 @@ if(!GameManager.isLoaded){
 //This is basically the menu that shows up in options menu
 GameManager.optionsMenu = function(){
 	var str = '<div class="listing">' + 
+		CCSE.MenuHelper.ActionButton("GameManager.defVer();", 'Default version number') + '<br><label>Steam only features</label><br>' + 
 		CCSE.MenuHelper.ActionButton("GameManager.restart();", 'Restart') + 
-		CCSE.MenuHelper.ActionButton("GameManager.defVer();", 'Default version number') + 
-		CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", '[Steam] Unlock Achievements') + 
+		CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + 
 		'<br><label>Made by flip#2454 with love <3</label></div>';
 	return str;
 }
