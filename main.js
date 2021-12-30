@@ -6,7 +6,7 @@ if(GameManager === undefined) var GameManager = {
 	version: 1.001,
 	gameVersion: Game.version
 };
-if(!Steam) if(typeof CCSE == 'undefined') Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js');
+if(typeof CCSE == 'undefined') Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js');
 
 
 
