@@ -68,24 +68,24 @@ FEATURES
 ---------------------------------------*/
 
 GameManager.restart = function(){
-	Game.Notify(`Restarting the game!`,'',[32,0], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
+	Game.Notify(`Restarting the game!`,'',[0,0, GameManager.Icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
 	Game.toSave = true;
 	Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
 }
 
 GameManager.defVer = function(){
-	Game.Notify(`Restoring version number to default!`,'',[32,0], true);
+	Game.Notify(`Restoring version number to default!`,'',[0,0, GameManager.Icon], true);
 	var verN = l('versionNumber');
 	verN.innerHTML = 'v.' + Game.version;
 }
 
 GameManager.unlockSteamAchievs = function(){
-	Game.Notify(`Unlocking Steam achievements!`,'',[32,0], true);
+	Game.Notify(`Unlocking Steam achievements!`,'',[0,0, GameManager.Icon], true);
 	Steam.allowSteamAchievs = true;
 }
 
 GameManager.cheatedCookiesUnlock = function(){
-	Game.Notify(`Unlocking "Cheated cookies taste awful"!`,'',[32,0], true);
+	Game.Notify(`Unlocking "Cheated cookies taste awful"!`,'',[0,0, GameManager.Icon], true);
 	Game.Win('Cheated cookies taste awful');
 }
 
@@ -107,7 +107,7 @@ GameManager.exOptionsMenu = function(){ //I just create the second options menu 
 
 //Fun fact: This feature almost made me lose my entire save file, but super luckily, I backed it up just one reload before
 GameManager.unlockAchiev = function(){
-	Game.Notify(`Unlocking "${achievName.value}" achievement!`,'',[32,0], true);
+	Game.Notify(`Unlocking "${achievName.value}" achievement!`,'',[0,0, GameManager.Icon], true);
 	Game.Win(achievName.value);
 }
 
