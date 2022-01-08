@@ -2,11 +2,11 @@
 // Feel free to suggest/improve/report bugs it will not be left uncredited(Unless I forget, then you can bug me about it for the rest of my life)
 
 //Create the GameManager object so I can put stuff in it
-if(GameManager === undefined) var GameManager = {
-	name: 'Game Manager',
-	version: 1.011,
-	gameVersion: Game.version
-};
+if(GameManager === undefined) var GameManager = {}
+	GameManager.name = 'Game Manager';
+	GameManager.version = 1.011;
+	GameManager.gameVersion = Game.version;
+	GameManager.Steam = (typeof Steam !== 'undefined'); //klattmose made this
 if(typeof CCSE == 'undefined') Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js'); //Loads CCSE, won't work on Steam, but will perfectly fit the web needs
 
 
@@ -17,7 +17,11 @@ INITIALIZATION
 
 // Append stuff to menus
 GameManager.launch = function(){
-	Game.Notify(`Game Manager loaded!`,'',[32,0], true);
+	
+	if(GameManager.Steam) GameManager.Icon = CCSE.GetModPath('fl1pnatic gamemanager') + '/icon.png';
+	else GameManager.Icon = 'https://raw.githubusercontent.com/Fl1pNatic/cc-gamemanager/main/icon.png';
+	Game.Notify("Game Manager is loaded!",'',[0,0, GameManager.Icon], true);
+	
 	isLoaded = 1;
 	Game.customOptionsMenu.push(function(){
 		CCSE.AppendCollapsibleOptionsMenu(GameManager.name, GameManager.optionsMenu());
