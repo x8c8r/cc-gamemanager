@@ -19,7 +19,7 @@ INITIALIZATION
 GameManager.launch = function(){
 	
 	if(GameManager.Steam) GameManager.Icon = CCSE.GetModPath('fl1pnatic gamemanager') + '/icon.png';
-	else GameManager.Icon = 'https://raw.githubusercontent.com/Fl1pNatic/cc-gamemanager/main/icon.png';
+	else GameManager.Icon = 'https://fl1pnatic.github.io/cc-gamemanager/icon.png';
 	Game.Notify("Game Manager is loaded!",'',[0,0, GameManager.Icon], true);
 	
 	isLoaded = 1;
