@@ -6,6 +6,10 @@
 - Reload the game (Steam)
 - Restore version number in bottom left corner to vanilla
 - Unlock Achievements (Steam)
+- Unlock "Cheated cookies taste awful" achievement easily
+
+<br>**EXPERIMENTAL:**
+- Unlock absolutely any achievement
 
 ### How to use:
 **Web**:
