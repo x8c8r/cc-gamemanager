@@ -22,7 +22,6 @@ GameManager.launch = function(){
 	else GameManager.Icon = 'https://fl1pnatic.github.io/cc-gamemanager/icon.png';
 	Game.Notify("Game Manager is loaded!",'',[0,0, GameManager.Icon], true);
 	
-	isLoaded = 1;
 	Game.customOptionsMenu.push(function(){
 		CCSE.AppendCollapsibleOptionsMenu(GameManager.name, GameManager.optionsMenu());
 		CCSE.AppendCollapsibleOptionsMenu("Game Manager - Experimental", GameManager.exOptionsMenu());
@@ -32,7 +31,10 @@ GameManager.launch = function(){
 	});
 	Game.customInfoMenu.push(function(){
 		CCSE.PrependCollapsibleInfoMenu(GameManager.name, GameManager.changelog);
-	});		
+	});					
+	
+	
+	isLoaded = 1;
 }
 
 // This waits before CCSE is initialized to then load the mod
@@ -44,20 +46,19 @@ if(!GameManager.isLoaded){
 		if(!CCSE) var CCSE = {};
 		if(!CCSE.postLoadHooks) CCSE.postLoadHooks = [];
 		CCSE.postLoadHooks.push(GameManager.launch);
-
 	}
 }
 
 //This is basically the menu that shows up in options menu
 GameManager.optionsMenu = function(){
 	var str = '<div class="listing">' + 
-		CCSE.MenuHelper.ActionButton("GameManager.defVer();", 'Default version') + `<label>(Restores version number in bottom left to it's 'pre-CCSE' state)</label><br>` +
+		CCSE.MenuHelper.ActionButton("GameManager.defVer();", 'Default version') + `<label>(Restores version number in bottom left to it's 'pre-CCSE' state)</label><br>` +		
+		CCSE.MenuHelper.ActionButton("GameManager.timeOut();", 'Sleep') + `<label>(Puts your game on the pause screen, as if "Sleep mode timeout" option was on)</label><br>` +
 		CCSE.MenuHelper.ActionButton("GameManager.cheatedCookiesUnlock();", '"Cheated cookies taste awful"') + `<label>(Unlocks "Cheated cookies taste awful" achievement without making you dirty)</label><br>` +
-		
-		'<br><label>Steam only features</label><br>' + 
-		
-		CCSE.MenuHelper.ActionButton("GameManager.restart();", 'Restart') + `<label>(Restarts the game, saving your progress before doing so)</label><br>` +
-		CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + `<label>(Unlocks ability to get Steam Achievements)</label>` +
+			//'<br><label>Steam only features</label><br>' + 
+			
+		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.reload();", 'Reload') + `<label>(Reloads the game, saving your progress before doing so)</label><br>`:'') +
+		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + `<label>(Unlocks ability to get Steam Achievements)</label>`:'') +
 		'<br><label>Made by flip#2454 with love <3</label></div>';
 	return str;
 }
@@ -67,8 +68,8 @@ GameManager.optionsMenu = function(){
 FEATURES
 ---------------------------------------*/
 
-GameManager.restart = function(){
-	Game.Notify(`Restarting the game!`,'',[0,0, GameManager.Icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
+GameManager.reload = function(){
+	Game.Notify(`Reloading the game!`,'',[0,0, GameManager.Icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
 	Game.toSave = true;
 	Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
 }
@@ -87,6 +88,11 @@ GameManager.unlockSteamAchievs = function(){
 GameManager.cheatedCookiesUnlock = function(){
 	Game.Notify(`Unlocking "Cheated cookies taste awful"!`,'',[0,0, GameManager.Icon], true);
 	Game.Win('Cheated cookies taste awful');
+}
+
+GameManager.timeOut = function(){
+	Game.Notify(`Timing out the game!`,'',[0,0, GameManager.Icon], true);
+	Game.Timeout();
 }
 
 /*-------------------------------------
@@ -111,6 +117,7 @@ GameManager.unlockAchiev = function(){
 	Game.Win(achievName.value);
 }
 
+
 /*-------------------------------------
 ChangeLog
 ---------------------------------------*/
@@ -121,6 +128,13 @@ GameManager.changelog = '<div class="subsection"><div class="listing">Game Manag
 	'<div class="subsection"><div class="listing">Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/fl1pnatic/cc-gamemanager/issues">GitHub Repo</a>.</div>' +
 	
 	'<div class="subsection"><div class="title">Game Manager ChangeLog</div>' +
+	
+	'</div><div class="subsection update small"><div class="title">09/01/2022</div>' + 
+	'</div><div class="listing">&bull; Added an ability to put the game to sleep, as if "Sleep mode timeout" was on.</div>' +
+	'</div><div class="listing">&bull; Made a custom icon, in place of just using a JSC one.' + 
+	`</div><div class="listing">&bull; Somehow broke my game so it doesn't reload anymore. Shouldn't do anything to you tho.</div>` +
+	`</div><div class="listing">&bull; Renamed "Restart" to "Reload" because that's what it is.</div>` +
+	`</div><div class="listing">&bull; Steam-only features should no longer be visible in the Web version.(First time of me using ternary operators btw)</div>` +
 	
 	'</div><div class="subsection update"><div class="title">08/01/2022</div>' + 
 	'<div class="subsection"><div class="listing">This update got pretty big, compared to other small ones. I surpassed my own expectations, and I think, I can do even better at some point.</div>' +
@@ -137,7 +151,7 @@ GameManager.changelog = '<div class="subsection"><div class="listing">Game Manag
 	'</div><div class="listing">&bull; Released Game Manager for use on the web version of Cookie Clicker. <a href="http://fl1pnatic.github.com/cc-gamemanager" target="_blank">Link</a></div>' +
 	
 	'</div><div class="subsection update"><div class="title">29/12/2021 - initial release</div>' +
-	'</div><div class="listing">&bull; Added an ability to restart the game, because I was tired of constantly having to turn one mod on and off just to restart."</div>' +
+	'</div><div class="listing">&bull; Added an ability to restart the game, because I was tired of constantly having to turn one mod on and off just to restart.</div>' +
 	'</div><div class="listing">&bull; Added and ability to change the version number in left bottom corner to look vanilla, because I was tired of CCSE changing it.</div>'
 	;
 	
