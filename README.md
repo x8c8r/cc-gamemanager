@@ -7,9 +7,12 @@
 - Restore version number in bottom left corner to vanilla
 - Unlock Achievements (Steam)
 - Unlock "Cheated cookies taste awful" achievement easily
+- Put your game to sleep as if "Sleep mode timeout" option was on
 
 <br>**EXPERIMENTAL:**
 - Unlock absolutely any achievement
+- Bring back features from web version(currently only the topbar) (Steam)
+- Change your game seed
 
 ### How to use:
 **Web**:
