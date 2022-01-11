@@ -8,6 +8,7 @@
 - Unlock Achievements (Steam)
 - Unlock "Cheated cookies taste awful" achievement easily
 - Put your game to sleep as if "Sleep mode timeout" option was on
+- See additional statistics
 
 <br>**EXPERIMENTAL:**
 - Unlock absolutely any achievement
