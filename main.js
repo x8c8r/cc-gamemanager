@@ -56,10 +56,9 @@ GameManager.optionsMenu = function(){
 		CCSE.MenuHelper.ActionButton("GameManager.timeOut();", 'Sleep') + `<label>(Puts your game on the pause screen, as if "Sleep mode timeout" option was on)</label><br>` +
 		CCSE.MenuHelper.ActionButton("GameManager.cheatedCookiesUnlock();", '"Cheated cookies taste awful"') + `<label>(Unlocks "Cheated cookies taste awful" achievement without making you dirty)</label>` +
 		
-		'<br><br><label>Steam only features</label><br><br>' + 
-		
-		CCSE.MenuHelper.ActionButton("GameManager.restart();", 'Restart') + `<label>(Restarts the game, saving your progress before doing so)</label><br>` +
-		CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + `<label>(Unlocks ability to get Steam Achievements)</label>` +
+	// Steam only features get checked for Steam
+		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.restart();", 'Restart') + `<label>(Restarts the game, saving your progress before doing so)</label><br>` : '') +
+		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + `<label>(Unlocks ability to get Steam Achievements)</label>` : '') +
 
 		'<br><br><label>Misc</label><br><br>' + 
 
