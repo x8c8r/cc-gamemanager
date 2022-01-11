@@ -4,7 +4,7 @@
 //Create the GameManager object so I can put stuff in it
 if(GameManager === undefined) var GameManager = {}
 	GameManager.name = 'Game Manager';
-	GameManager.version = 1.013;
+	GameManager.version = 1.014;
 	GameManager.gameVersion = Game.version;
 	GameManager.Steam = (typeof Steam !== 'undefined'); //klattmose made this
 if(typeof CCSE == 'undefined' && !GameManager.Steam) Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js'); //Loads CCSE, won't work on Steam, but will perfectly fit the web needs
