@@ -11,7 +11,7 @@
 - See additional statistics
 
 <br>**EXPERIMENTAL:**
-- Unlock absolutely any achievement
+- Unlock almost any achievement
 - Bring back features from web version(currently only the topbar) (Steam)
 - Change your game seed
 
