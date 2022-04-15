@@ -7,6 +7,7 @@
 - Restore version number in bottom left corner to vanilla
 - Unlock Achievements (Steam)
 - Unlock "Cheated cookies taste awful" achievement easily
+- Open Sesame easily
 - Put your game to sleep as if "Sleep mode timeout" option was on
 - See additional statistics
 
