@@ -4,12 +4,13 @@
 //Create the GameManager object so I can put stuff in it
 if(GameManager === undefined) var GameManager = {}
 	GameManager.name = 'Game Manager';
-	GameManager.version = 1.014;
+	GameManager.version = 1.025;
 	GameManager.gameVersion = Game.version;
 	GameManager.Steam = (typeof Steam !== 'undefined'); //klattmose made this
 if(typeof CCSE == 'undefined' && !GameManager.Steam) Game.LoadMod('https://klattmose.github.io/CookieClicker/CCSE.js'); //Loads CCSE, won't work on Steam, but will perfectly fit the web needs
 
 var exU = false; //Checks if experimental menu has already been pushed
+var asU = false; //Checks if additional statistics have already been pushed
 /*-------------------------------------
 INITIALIZATION
 ---------------------------------------*/
@@ -19,19 +20,14 @@ GameManager.launch = function(){
 	
 	if(GameManager.Steam) GameManager.Icon = CCSE.GetModPath('fl1pnatic gamemanager') + '/icon.png';
 	else GameManager.Icon = 'https://fl1pnatic.github.io/cc-gamemanager/icon.png';
-	Game.Notify("Game Manager is loaded!",'',[0,0, GameManager.Icon], true);
+	Game.Notify(`<div>Game Manager is loaded!</div><br>`, `v${GameManager.version}`, [0,0, GameManager.Icon], true);
 	
 	Game.customOptionsMenu.push(function(){
 		CCSE.AppendCollapsibleOptionsMenu(GameManager.name, GameManager.optionsMenu());
 	});
-	Game.customStatsMenu.push(function(){
-		CCSE.AppendStatsVersionNumber(GameManager.name, GameManager.version);
-		CCSE.AppendStatsGeneral(GameManager.additionalStatsMenu());
-	});
 	Game.customInfoMenu.push(function(){
 		CCSE.PrependCollapsibleInfoMenu(GameManager.name, GameManager.changelog());
 	});					
-	
 	
 	isLoaded = 1;
 }
@@ -54,13 +50,15 @@ GameManager.optionsMenu = function(){
 	var str = '<div class="listing">' + 
 		CCSE.MenuHelper.ActionButton("GameManager.defVer();", 'Default version') + `<label>(Restores version number in bottom left to it's 'pre-CCSE' state)</label><br>` +		
 		CCSE.MenuHelper.ActionButton("GameManager.timeOut();", 'Sleep') + `<label>(Puts your game on the pause screen, as if "Sleep mode timeout" option was on)</label><br>` +
-		CCSE.MenuHelper.ActionButton("GameManager.cheatedCookiesUnlock();", '"Cheated cookies taste awful"') + `<label>(Unlocks "Cheated cookies taste awful" achievement without making you dirty)</label>` +
+		CCSE.MenuHelper.ActionButton("GameManager.cheatedCookiesUnlock();", '"Cheated cookies taste awful"') + `<label>(Unlocks "Cheated cookies taste awful" achievement without making you dirty)</label><br>` +
+		CCSE.MenuHelper.ActionButton("GameManager.turnOnAdditionalStats();", 'Additional Stats') + `<label>(Turns on additional statistics, e.g. Missed Golden Cokie Count)</label><br>` +		
+		CCSE.MenuHelper.ActionButton("GameManager.openSesame();", 'Open Sesame') + `<label>(Opens the sesame)</label><br>` +
 		
 	// Steam only features get checked for Steam
 		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.restart();", 'Restart') + `<label>(Restarts the game, saving your progress before doing so)</label><br>` : '') +
 		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.unlockSteamAchievs();", 'Unlock Achievements') + `<label>(Unlocks ability to get Steam Achievements)</label>` : '') +
 
-		'<br><br><label>Misc</label><br><br>' + 
+		'<br><br><label>Experimental</label><br><br>' + 
 
 		CCSE.MenuHelper.ActionButton("GameManager.turnOnEx();", 'Unlock Experimental') + `<label>(Unlocks access to Experimental features of the mod)</label><br>` +
 
@@ -72,10 +70,10 @@ GameManager.optionsMenu = function(){
 GameManager.exOptionsMenu = function(){
 	var str = '<div class="listing">' + 
 		'<div class="listing warning" style="text-align:center;">Features that are present in this category should not be expected to be stable or complete. Proceed with caution, and if you can - Leave feedback.</div>' +
-		CCSE.MenuHelper.InputBox("achievName", 250, "", ) + 
+		CCSE.MenuHelper.InputBox("achievName", 300, "", ) + 
 		CCSE.MenuHelper.ActionButton("GameManager.unlockAchiev();", 'Unlock Achievement') + `<br><label>(Unlocks any achievement, name of which you enter. Textbox is getting reset every 5 second is cause of a bug. WARNING: NAMES ARE CASE-SENSITIVE)</label><br>` +
 		(GameManager.Steam? CCSE.MenuHelper.ActionButton("GameManager.webify();", 'Webify') + '<label>(Brings back Web-Only features like the top bar)</label><br>' : '') +
-		CCSE.MenuHelper.InputBox("gameSeed", 250, Game.seed, ) + 
+		CCSE.MenuHelper.InputBox("gameSeed", 300, Game.seed, ) + 
 		CCSE.MenuHelper.ActionButton("GameManager.changeSeed();", 'Change Seed') + `<br><label>(Each run has it's unique seed that is 5 characters long and only consists of small English letters. The seed is primarly used in events that require a random element. E.g Determining Sugar Lump type.)` +
 		`</div>`;
 	return str;
@@ -123,10 +121,26 @@ GameManager.timeOut = function(){
 	Game.Timeout();
 }
 
+GameManager.openSesame = function(){
+	Game.Notify(`Opening the sesame!`,'',[0,0, GameManager.Icon], true);
+	Game.OpenSesame();
+}
+
+GameManager.turnOnAdditionalStats = function(){
+	if(!asU){
+		asU = true;
+		Game.Notify(`Turning on additional statistics!`, '',[0,0, GameManager.Icon], true);
+		Game.customStatsMenu.push(function(){
+			CCSE.AppendStatsVersionNumber(GameManager.name, GameManager.version);
+			CCSE.AppendStatsGeneral(GameManager.additionalStatsMenu());
+		});
+	}
+}
+
 GameManager.turnOnEx = function(){
-	Game.Notify(`Unlocking Experimental Features!`,'',[0,0, GameManager.Icon], true);
 	if(!exU){
 		exU = true;
+		Game.Notify(`Unlocking Experimental Features!`,'',[0,0, GameManager.Icon], true);
 		Game.customOptionsMenu.push(function(){
 			CCSE.AppendCollapsibleOptionsMenu("Game Manager - Experimental", GameManager.exOptionsMenu());
 		});
@@ -162,14 +176,22 @@ ChangeLog
 ---------------------------------------*/
 //Fun fact: I actually don't know the chronology of the mod, let's suppose it is how it is here
 GameManager.changelog = function(){
-	var str=`<div class="subsection"><div class="listing">Game Manager is a mod to control the game you are playing.</div>` + 
+	var str=`<div class="subsection"><div class="listing">Game Manager is a mod to control the game you are playing. Think of it as a kind of a swiss knife for both modmakers and players.</div>` + 
 	`<div class="subsection"><div class="listing">In development since December 2021.</div>` +
 	`<div class="subsection"><div class="listing">Made by Fl1pNatic(<a href="https://steamcommunity.com/id/fl1pnatic" target="_blank">Steam</a>, <a href="https://github.com/fl1pnatic target="_blank">GitHub</a>)</div>` +
 	`<div class="subsection"><div class="listing">Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/fl1pnatic/cc-gamemanager/issues">GitHub Repo</a>.</div>` +
 	
 	`<div class="subsection"><div class="title">Game Manager ChangeLog</div>` +
 
-	`</div></div class="subsection update small><div class="title>11/01/2022</div>` +
+	`</div><div class="subsection update small"><div class="title">16/04/2022</div>` + 
+	`</div><div class="listing">&bull; Added an ability to open sesame.</div>` +
+	`</div><div class="listing">&bull; Made it so you can only activate additional statistics once.</div>` +
+	
+	`</div><div class="subsection update small"><div class="title">06/03/2022</div>` + 
+	`</div><div class="listing">&bull; Additional statistics now have to be turned on first before being shown.</div>` +
+	
+
+	`</div><div class="subsection update small"><div class="title">11/01/2022</div>` + 
 	`</div><div class="listing">&bull; Added some additional statistics in the "Stats" menu.</div>` +
 	`</div><div class="listing">&bull; Fixed a bug where if you click "Unlock Experimental" button several times, it will open several tabs.</div>` +
 
