@@ -1,3 +1,32 @@
+// Web won't let me have shit
+GameManager.InjectCode = function(functionName, alteration, code ){
+    var og = eval(functionName);
+    if (og === null) {
+        console.error(`"${functionName}" is not found`);
+    }
+    if (typeof(og) !== "function") {
+        console.error(`"${functionName}" is not a function`)
+    }
+    eval(functionName + "=" + alteration(og.toString()));
+}
+
+GameManager.ReplaceFunctionCode = function(functionName, targetString, code, mode) {
+    var alteration = function(func) {
+        switch(mode) {
+            case -1: // Prepend
+                return func.replace(targetString, code + "\n" + targetString);
+            case 0: // Replace
+                return func.replace(targetString, code);
+            case 1: // Append
+                return func.replace(targetString, targetString + "\n" + code);
+            default:
+                console.error("Invalid Mode");
+        }
+        return func.replace(targetString, targetString + "\n" + code);
+    }
+    GameManager.InjectCode(functionName, alteration, code);
+}
+
 if (GameManager === undefined) var GameManager = {
     name: 'Game Manager',
     id: 'x8c8r.gameManager',
@@ -231,35 +260,6 @@ GameManager.appendInfoMenu = function(title, body) {
 GameManager.MenuElements = {
     Button: (func, text) =>
         '<a class="smallFancyButton option"' + `${ Game.clickStr }="${ func } PlaySound('snd/tick.mp3');">${ text }</a>`,
-}
-
-
-GameManager.InjectCode = function(functionName, alteration, code ){
-    var og = eval(functionName);
-    if (og === null) {
-        console.error(`"${functionName}" is not found`);
-    }
-    if (typeof(og) !== "function") {
-        console.error(`"${functionName}" is not a function`)
-    }
-    eval(functionName + "=" + alteration(og.toString()));
-}
-
-GameManager.ReplaceFunctionCode = function(functionName, targetString, code, mode) {
-    var alteration = function(func) {
-        switch(mode) {
-            case -1: // Prepend
-                return func.replace(targetString, code + "\n" + targetString);
-            case 0: // Replace
-                return func.replace(targetString, code);
-            case 1: // Append
-                return func.replace(targetString, targetString + "\n" + code);
-            default:
-                console.error("Invalid Mode");
-        }
-        return func.replace(targetString, targetString + "\n" + code);
-    }
-    GameManager.InjectCode(functionName, alteration, code);
 }
 
 // Changelog
