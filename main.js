@@ -6,94 +6,6 @@ if (GameManager === undefined) var GameManager = {
     steam: (typeof Steam !== undefined),
 
     init: function () {
-        let mod = Game.mods[GameManager.id];
-        GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
-        Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
-
-        GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
-        if (Game.onMenu == 'prefs'){
-            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
-        }
-        if (Game.onMenu == 'stats'){
-            GameManager.appendGenStats(GameManager.additionalStats());
-        }
-        if (Game.onMenu=='log'){
-            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
-        }
-        `, 1);
-
-        // Menus
-        GameManager.optionsMenu = function () {
-            var str = '<div class="listing">' +
-                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.restart();", "Reload") + `<label>Reloads the game</label><br>` : "") +
-                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
-                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Brings back stuff from web version (e.g. top bar)</label><br>` : "") +
-                GameManager.MenuElements.Button("GameManager.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
-                GameManager.MenuElements.Button("GameManager.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
-                GameManager.MenuElements.Button("GameManager.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` +
-                `<br><label>Made by x8c8r with love <3</label>` +
-                `</div>`;
-            return str;
-        }
-
-        GameManager.additionalStats = function () {
-            var str =
-                `<div class="listing"><b>Missed golden cookies: </b>` + Beautify(Game.missedGoldenClicks) + `</div>` +
-                `<div class="listing"><b>Seed: </b>` + Game.seed + `</div>`;
-
-            return str;
-        }
-
-
-        // Features
-        GameManager.restart = function () {
-            Game.Notify(`Restarting the game!`, '', [0, 0, GameManager.icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
-            Game.toSave = true;
-            Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
-        }
-
-        GameManager.openSesame = function () {
-            Game.Notify(`Opening the sesame!`, '', [0, 0, GameManager.icon], true);
-            Game.OpenSesame();
-        }
-
-        GameManager.unlockSteamAchievs = function () {
-            Game.Notify(`Unlocking Steam achievements!`, '', [0, 0, GameManager.icon], true);
-            Steam.allowSteamAchievs = true;
-        }
-
-        GameManager.cheatedCookiesUnlock = function () {
-            Game.Notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GameManager.icon], true);
-            Game.Win('Cheated cookies taste awful');
-        }
-
-        GameManager.sleep = function () {
-            Game.Notify(`Timing out the game!`, '', [0, 0, GameManager.icon], true);
-            Game.Timeout();
-        }
-
-        GameManager.webify = function () {
-            Game.Notify(`Toggling the Web features!`, '', [0, 0, GameManager.icon], true);
-            GMConfig.webify = !GMConfig.webify;
-            if (GMConfig.webify) {
-                Game.wrapper.classList.remove('offWeb');
-                Game.wrapper.classList.add('onWeb');
-            }
-            else {
-                Game.wrapper.classList.add('offWeb');
-                Game.wrapper.classList.remove('onWeb');
-            }
-            Game.UpdateMenu();
-
-        }
-
-        /*
-        I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
-        which are the only things I really need. I just hope no one will be angry with me for this...
-        So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
-        */
-
-        // Menu Helpers
         GameManager.appendOptionsMenu = function (title, body) {
             var titleDiv = document.createElement('div');
             titleDiv.className = title;
@@ -238,6 +150,95 @@ if (GameManager === undefined) var GameManager = {
             }
             GameManager.InjectCode(functionName, alteration, code);
         }
+        
+        let mod = Game.mods[GameManager.id];
+        GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
+        Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
+
+        GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
+        if (Game.onMenu == 'prefs'){
+            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
+        }
+        if (Game.onMenu == 'stats'){
+            GameManager.appendGenStats(GameManager.additionalStats());
+        }
+        if (Game.onMenu=='log'){
+            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
+        }
+        `, 1);
+
+        // Menus
+        GameManager.optionsMenu = function () {
+            var str = '<div class="listing">' +
+                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.restart();", "Reload") + `<label>Reloads the game</label><br>` : "") +
+                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
+                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Brings back stuff from web version (e.g. top bar)</label><br>` : "") +
+                GameManager.MenuElements.Button("GameManager.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
+                GameManager.MenuElements.Button("GameManager.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
+                GameManager.MenuElements.Button("GameManager.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` +
+                `<br><label>Made by x8c8r with love <3</label>` +
+                `</div>`;
+            return str;
+        }
+
+        GameManager.additionalStats = function () {
+            var str =
+                `<div class="listing"><b>Missed golden cookies: </b>` + Beautify(Game.missedGoldenClicks) + `</div>` +
+                `<div class="listing"><b>Seed: </b>` + Game.seed + `</div>`;
+
+            return str;
+        }
+
+
+        // Features
+        GameManager.restart = function () {
+            Game.Notify(`Restarting the game!`, '', [0, 0, GameManager.icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
+            Game.toSave = true;
+            Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
+        }
+
+        GameManager.openSesame = function () {
+            Game.Notify(`Opening the sesame!`, '', [0, 0, GameManager.icon], true);
+            Game.OpenSesame();
+        }
+
+        GameManager.unlockSteamAchievs = function () {
+            Game.Notify(`Unlocking Steam achievements!`, '', [0, 0, GameManager.icon], true);
+            Steam.allowSteamAchievs = true;
+        }
+
+        GameManager.cheatedCookiesUnlock = function () {
+            Game.Notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GameManager.icon], true);
+            Game.Win('Cheated cookies taste awful');
+        }
+
+        GameManager.sleep = function () {
+            Game.Notify(`Timing out the game!`, '', [0, 0, GameManager.icon], true);
+            Game.Timeout();
+        }
+
+        GameManager.webify = function () {
+            Game.Notify(`Toggling the Web features!`, '', [0, 0, GameManager.icon], true);
+            GMConfig.webify = !GMConfig.webify;
+            if (GMConfig.webify) {
+                Game.wrapper.classList.remove('offWeb');
+                Game.wrapper.classList.add('onWeb');
+            }
+            else {
+                Game.wrapper.classList.add('offWeb');
+                Game.wrapper.classList.remove('onWeb');
+            }
+            Game.UpdateMenu();
+
+        }
+
+        /*
+        I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
+        which are the only things I really need. I just hope no one will be angry with me for this...
+        So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
+        */
+
+        // Menu Helpers
 
         // Changelog
         GameManager.changelog = function () {
@@ -322,11 +323,6 @@ if (GameManager === undefined) var GameManager = {
         GMConfig.webify = !GMConfig.webify;
         GameManager.webify();
     }
-}
-
-// Config
-if (GMConfig === undefined) var GMConfig = {
-    webify: false
 }
 
 Game.registerMod('x8c8r.gameManager', GameManager);
