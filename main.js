@@ -1,11 +1,21 @@
 if (GameManager === undefined) var GameManager = {
     name: 'Game Manager',
     id: 'x8c8r.gameManager',
-    version: 2.000,
+    version: 2.001,
     gameVersion: Game.gameVersion,
-    steam: (typeof Steam !== undefined),
+    steam: typeof (Steam) !== 'undefined',
 
     init: function () {
+        if (GMConfig === undefined) var GMConfig = {
+            webify: false
+        }
+        /*
+        I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
+        which are the only things I really need. I just hope no one will be angry with me for this...
+        So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
+        */
+
+        // Menu Helpers
         GameManager.appendOptionsMenu = function (title, body) {
             var titleDiv = document.createElement('div');
             titleDiv.className = title;
@@ -150,11 +160,12 @@ if (GameManager === undefined) var GameManager = {
             }
             GameManager.InjectCode(functionName, alteration, code);
         }
-        
+
         let mod = Game.mods[GameManager.id];
         GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
         Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
 
+        // Inject menus in 
         GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
         if (Game.onMenu == 'prefs'){
             GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
@@ -170,9 +181,9 @@ if (GameManager === undefined) var GameManager = {
         // Menus
         GameManager.optionsMenu = function () {
             var str = '<div class="listing">' +
-                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.restart();", "Reload") + `<label>Reloads the game</label><br>` : "") +
+                GameManager.MenuElements.Button("GameManager.restart();", "Reload") + `<label>Reloads the game</label><br>`+
                 (GameManager.steam ? GameManager.MenuElements.Button("GameManager.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
-                (GameManager.steam ? GameManager.MenuElements.Button("GameManager.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Brings back stuff from web version (e.g. top bar)</label><br>` : "") +
+                GameManager.MenuElements.Button("GameManager.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Brings back stuff from web version (e.g. top bar)</label><br>`+
                 GameManager.MenuElements.Button("GameManager.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
                 GameManager.MenuElements.Button("GameManager.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
                 GameManager.MenuElements.Button("GameManager.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` +
@@ -231,14 +242,6 @@ if (GameManager === undefined) var GameManager = {
             Game.UpdateMenu();
 
         }
-
-        /*
-        I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
-        which are the only things I really need. I just hope no one will be angry with me for this...
-        So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
-        */
-
-        // Menu Helpers
 
         // Changelog
         GameManager.changelog = function () {
