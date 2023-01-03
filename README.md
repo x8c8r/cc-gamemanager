@@ -10,11 +10,7 @@
 - Open Sesame easily
 - Put your game to sleep as if "Sleep mode timeout" option was on
 - See additional statistics
-
-<br>**EXPERIMENTAL:**
-- Unlock almost any achievement
 - Bring back features from web version(currently only the topbar) (Steam)
-- Change your game seed
 
 ### How to use:
 **Web**:
@@ -23,7 +19,7 @@
 - Type in `Game.LoadMod('https://fl1pnatic.github.io/cc-gamemanager/main.js');` and press enter
 
 **Steam**:
-- Download [workshop version](https://steamcommunity.com/sharedfiles/filedetails/?id=2699593599) and [CCSE](https://steamcommunity.com/workshop/filedetails/?id=2685465009)
+- Download [workshop version](https://steamcommunity.com/sharedfiles/filedetails/?id=2699593599)
 - Open the game
-- Turn on both mods
+- Turn on the mod
 - Restart with new changes
