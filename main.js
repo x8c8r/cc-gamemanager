@@ -6,67 +6,6 @@ if (GameManager === undefined) var GameManager = {
     steam: (typeof Steam !== undefined)
 }
 
-// Web won't let me have shit
-GameManager.InjectCode = function (functionName, alteration, code) {
-    var og = eval(functionName);
-    if (og === null) {
-        console.error(`"${functionName}" is not found`);
-    }
-    if (typeof (og) !== "function") {
-        console.error(`"${functionName}" is not a function`)
-    }
-    eval(functionName + "=" + alteration(og.toString()));
-}
-
-GameManager.ReplaceFunctionCode = function (functionName, targetString, code, mode) {
-    var alteration = function (func) {
-        switch (mode) {
-            case -1: // Prepend
-                return func.replace(targetString, code + "\n" + targetString);
-            case 0: // Replace
-                return func.replace(targetString, code);
-            case 1: // Append
-                return func.replace(targetString, targetString + "\n" + code);
-            default:
-                console.error("Invalid Mode");
-        }
-        return func.replace(targetString, targetString + "\n" + code);
-    }
-    GameManager.InjectCode(functionName, alteration, code);
-}
-
-GameManager.init = function () {
-    let mod = Game.mods[GameManager.id];
-    GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
-    Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
-
-    GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
-        if (Game.onMenu == 'prefs'){
-            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
-        }
-        if (Game.onMenu == 'stats'){
-            GameManager.appendGenStats(GameManager.additionalStats());
-        }
-        if (Game.onMenu=='log'){
-            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
-        }
-        `, 1);
-}
-
-GameManager.save = function () {
-    var save = JSON.stringify(GMConfig);
-    return save;
-}
-
-GameManager.load = function (str) {
-    if (!str) return;
-    GMConfig = JSON.parse(str);
-
-    // Webify
-    GMConfig.webify = !GMConfig.webify;
-    GameManager.webify();
-}
-
 // Config
 if (GMConfig === undefined) var GMConfig = {
     webify: false
@@ -262,6 +201,35 @@ GameManager.MenuElements = {
         '<a class="smallFancyButton option"' + `${Game.clickStr}="${func} PlaySound('snd/tick.mp3');">${text}</a>`,
 }
 
+
+GameManager.InjectCode = function (functionName, alteration, code) {
+    var og = eval(functionName);
+    if (og === null) {
+        console.error(`"${functionName}" is not found`);
+    }
+    if (typeof (og) !== "function") {
+        console.error(`"${functionName}" is not a function`)
+    }
+    eval(functionName + "=" + alteration(og.toString()));
+}
+
+GameManager.ReplaceFunctionCode = function (functionName, targetString, code, mode) {
+    var alteration = function (func) {
+        switch (mode) {
+            case -1: // Prepend
+                return func.replace(targetString, code + "\n" + targetString);
+            case 0: // Replace
+                return func.replace(targetString, code);
+            case 1: // Append
+                return func.replace(targetString, targetString + "\n" + code);
+            default:
+                console.error("Invalid Mode");
+        }
+        return func.replace(targetString, targetString + "\n" + code);
+    }
+    GameManager.InjectCode(functionName, alteration, code);
+}
+
 // Changelog
 GameManager.changelog = function () {
     var str = `<div class="subsection"><div class="listing">Game Manager is a mod to control the game you are playing. Think of it as a kind of a swiss knife for both modmakers and players.</div>` +
@@ -329,4 +297,39 @@ GameManager.changelog = function () {
         `</div><div class="listing">&bull; Added and ability to change the version number in left bottom corner to look vanilla, because I was tired of CCSE changing it.</div>`
         ;
     return str;
+}
+
+// Actually fucking init the mod coz web version sucks
+GameManager.init = function () {
+    let mod = Game.mods[GameManager.id];
+    GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
+    Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
+
+    GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
+        if (Game.onMenu == 'prefs'){
+            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
+        }
+        if (Game.onMenu == 'stats'){
+            GameManager.appendGenStats(GameManager.additionalStats());
+        }
+        if (Game.onMenu=='log'){
+            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
+        }
+        `, 1);
+}
+
+GameManager.save = function () {
+    var save = JSON.stringify(GMConfig);
+    return save;
+}
+
+GameManager.load = function (str) {
+    if (!str) return;
+    GMConfig = JSON.parse(str);
+
+    // Webify
+    if (GameManager.steam) {
+        GMConfig.webify = !GMConfig.webify;
+        GameManager.webify();
+    }
 }
