@@ -16,7 +16,7 @@
 **Web**:
 - Open developer console
 - If you already used the mod I would recommend right clicking the reload button with dev console on and selecting "Clear cache and hard refresh"
-- Type in `Game.LoadMod('https://fl1pnatic.github.io/cc-gamemanager/main.js');` and press enter
+- Type in `Game.LoadMod('https://x8c8r.github.io/cc-gamemanager/main.js');` and press enter
 
 **Steam**:
 - Download [workshop version](https://steamcommunity.com/sharedfiles/filedetails/?id=2699593599)
