@@ -4,208 +4,172 @@ if (GameManager === undefined) var GameManager = {
     version: 2.001,
     gameVersion: Game.gameVersion,
     steam: typeof (Steam) !== 'undefined',
+}
 
-    init: function () {
-        // Config
-        if (GMConfig === undefined) var GMConfig = {
-            webify: false
-        }
-        /*
-        I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
-        which are the only things I really need. I just hope no one will be angry with me for this...
-        So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
-        */
+if (GMConfig === undefined) var GMConfig = {
+    webify: false
+}
+/*
+    I am going to admit I used a lot of CCSE code as reference here, but only for the singular purpose of not having to rely on CCSE for code injection and menus
+    which are the only things I really need. I just hope no one will be angry with me for this...
+    So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
+    */
 
-        // Menu Helpers
-        GameManager.appendOptionsMenu = function (title, body) {
-            var titleDiv = document.createElement('div');
-            titleDiv.className = title;
-            titleDiv.textContent = title;
-            titleDiv.classList = ["title"];
+// Menu Helpers
+GameManager.appendOptionsMenu = function (title, body) {
+    var titleDiv = document.createElement('div');
+    titleDiv.className = title;
+    titleDiv.textContent = title;
+    titleDiv.classList = ["title"];
 
-            // This is needed so everything is styled properly
-            var container = document.createElement('div');
-            container.classList = ["subsection"];
+    // This is needed so everything is styled properly
+    var container = document.createElement('div');
+    container.classList = ["subsection"];
 
-            var bodyDiv;
-            if (typeof (body == 'string')) {
-                bodyDiv = document.createElement('div');
-                bodyDiv.innerHTML = body;
-            }
-            else {
-                bodyDiv = body;
-            }
+    var bodyDiv;
+    if (typeof (body == 'string')) {
+        bodyDiv = document.createElement('div');
+        bodyDiv.innerHTML = body;
+    }
+    else {
+        bodyDiv = body;
+    }
 
-            container.appendChild(titleDiv);
-            container.appendChild(bodyDiv);
+    container.appendChild(titleDiv);
+    container.appendChild(bodyDiv);
 
-            var div = document.createElement('div');
-            div.appendChild(container);
-            div.classList = ["block"];
-            div.style = "padding:0px;margin:8px 4px;";
+    var div = document.createElement('div');
+    div.appendChild(container);
+    div.classList = ["block"];
+    div.style = "padding:0px;margin:8px 4px;";
 
-            var menu = l("menu");
-            if (!menu) return;
-            var padding = menu.childNodes;
-            padding = padding[padding.length - 1];
-            if (padding) {
-                menu.insertBefore(div, padding);
-            }
-            else {
-                menu.appendChild(div);
-            }
-        }
-
-        GameManager.appendGeneralStats = function (body) {
-            var div;
-            if (typeof (body) == 'string') {
-                div = document.createElement('div');
-                div.innerHTML = body;
-            }
-            else {
-                div = body;
-            }
-
-            var genStats = l('statsGeneral');
-            if (genStats) genStats.appendChild(div);
-        }
-
-        GameManager.prependInfoMenu = function (title, body) {
-            var titleDiv = document.createElement('div');
-            titleDiv.className = title;
-            titleDiv.textContent = title;
-            titleDiv.classList = ["title"];
-
-            // This is needed so the title is styled properly
-            var titleContainer = document.createElement('div');
-            titleContainer.classList = ["subsection"];
-            titleContainer.appendChild(titleDiv);
-
-            var bodyDiv;
-            if (typeof (body == 'string')) {
-                bodyDiv = document.createElement('div');
-                bodyDiv.innerHTML = body;
-            }
-            else {
-                bodyDiv = body;
-            }
-
-            var div = document.createElement('div');
-            div.appendChild(titleContainer);
-            div.appendChild(bodyDiv);
-
-            var menu = l('menu');
-            if (!menu) return;
-            var about = menu.getElementsByClassName('subsection')[0];
-            if (!about) return;
-            about.parentNode.insertBefore(div, about);
-        }
-
-        GameManager.appendInfoMenu = function (title, body) {
-            var titleDiv = document.createElement('div');
-            titleDiv.className = title;
-            titleDiv.textContent = title;
-            titleDiv.classList = ["title"];
-
-            // This is needed so the title is styled properly
-            var titleContainer = document.createElement('div');
-            titleContainer.classList = ["subsection"];
-            titleContainer.appendChild(titleDiv);
-
-            var bodyDiv;
-            if (typeof (body == 'string')) {
-                bodyDiv = document.createElement('div');
-                bodyDiv.innerHTML = body;
-            }
-            else {
-                bodyDiv = body;
-            }
-
-            var div = document.createElement('div');
-            div.appendChild(titleContainer);
-            div.appendChild(bodyDiv);
-            menu.appendChild(div);
-        }
-
-        // Designs
-        GameManager.MenuElements = {
-            Button: (func, text) =>
-                '<a class="smallFancyButton option"' + `${Game.clickStr}="${func} PlaySound('snd/tick.mp3');">${text}</a>`,
-        }
-
-
-        GameManager.InjectCode = function (functionName, alteration, code) {
-            var og = eval(functionName);
-            if (og === null) {
-                console.error(`"${functionName}" is not found`);
-            }
-            if (typeof (og) !== "function") {
-                console.error(`"${functionName}" is not a function`)
-            }
-            eval(functionName + "=" + alteration(og.toString()));
-        }
-
-        GameManager.ReplaceFunctionCode = function (functionName, targetString, code, mode) {
-            var alteration = function (func) {
-                switch (mode) {
-                    case -1: // Prepend
-                        return func.replace(targetString, code + "\n" + targetString);
-                    case 0: // Replace
-                        return func.replace(targetString, code);
-                    case 1: // Append
-                        return func.replace(targetString, targetString + "\n" + code);
-                    default:
-                        console.error("Invalid Mode");
-                }
-                return func.replace(targetString, targetString + "\n" + code);
-            }
-            GameManager.InjectCode(functionName, alteration, code);
-        }
-
-        let mod = Game.mods[GameManager.id];
-        GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
-        Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
-
-        // Inject menus in 
-        GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
-        if (Game.onMenu == 'prefs'){
-            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
-        }
-        if (Game.onMenu == 'stats'){
-            GameManager.appendGeneralStats(GameManager.additionalStats());
-        }
-        if (Game.onMenu=='log'){
-            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
-        }
-        `, 1);
-    },
-
-    save: function () {
-        var save = JSON.stringify(GMConfig);
-        return save;
-    },
-
-    load: function (str) {
-        if (!str) return;
-        GMConfig = JSON.parse(str);
-
-        // Webify
-        GMConfig.webify = !GMConfig.webify;
-        GameManager.webify();
+    var menu = l("menu");
+    if (!menu) return;
+    var padding = menu.childNodes;
+    padding = padding[padding.length - 1];
+    if (padding) {
+        menu.insertBefore(div, padding);
+    }
+    else {
+        menu.appendChild(div);
     }
 }
 
-Game.registerMod('x8c8r.gameManager', GameManager);
+GameManager.appendGenStats = function (body) {
+    var div;
+    if (typeof (body) == 'string') {
+        div = document.createElement('div');
+        div.innerHTML = body;
+    }
+    else {
+        div = body;
+    }
+
+    var genStats = l('statsGeneral');
+    if (genStats) genStats.appendChild(div);
+}
+
+GameManager.prependInfoMenu = function (title, body) {
+    var titleDiv = document.createElement('div');
+    titleDiv.className = title;
+    titleDiv.textContent = title;
+    titleDiv.classList = ["title"];
+
+    // This is needed so the title is styled properly
+    var titleContainer = document.createElement('div');
+    titleContainer.classList = ["subsection"];
+    titleContainer.appendChild(titleDiv);
+
+    var bodyDiv;
+    if (typeof (body == 'string')) {
+        bodyDiv = document.createElement('div');
+        bodyDiv.innerHTML = body;
+    }
+    else {
+        bodyDiv = body;
+    }
+
+    var div = document.createElement('div');
+    div.appendChild(titleContainer);
+    div.appendChild(bodyDiv);
+
+    var menu = l('menu');
+    if (!menu) return;
+    var about = menu.getElementsByClassName('subsection')[0];
+    if (!about) return;
+    about.parentNode.insertBefore(div, about);
+}
+
+GameManager.appendInfoMenu = function (title, body) {
+    var titleDiv = document.createElement('div');
+    titleDiv.className = title;
+    titleDiv.textContent = title;
+    titleDiv.classList = ["title"];
+
+    // This is needed so the title is styled properly
+    var titleContainer = document.createElement('div');
+    titleContainer.classList = ["subsection"];
+    titleContainer.appendChild(titleDiv);
+
+    var bodyDiv;
+    if (typeof (body == 'string')) {
+        bodyDiv = document.createElement('div');
+        bodyDiv.innerHTML = body;
+    }
+    else {
+        bodyDiv = body;
+    }
+
+    var div = document.createElement('div');
+    div.appendChild(titleContainer);
+    div.appendChild(bodyDiv);
+    menu.appendChild(div);
+}
+
+// Designs
+GameManager.MenuElements = {
+    Button: (func, text) =>
+        '<a class="smallFancyButton option"' + `${Game.clickStr}="${func} PlaySound('snd/tick.mp3');">${text}</a>`,
+}
+
+// Code Injection
+GameManager.InjectCode = function (functionName, alteration, code) {
+    var og = eval(functionName);
+    if (og === null) {
+        console.error(`"${functionName}" is not found`);
+    }
+    if (typeof (og) !== "function") {
+        console.error(`"${functionName}" is not a function`)
+    }
+    eval(functionName + "=" + alteration(og.toString()));
+}
+
+GameManager.ReplaceFunctionCode = function (functionName, targetString, code, mode) {
+    var alteration = function (func) {
+        switch (mode) {
+            case -1: // Prepend
+                return func.replace(targetString, code + "\n" + targetString);
+            case 0: // Replace
+                return func.replace(targetString, code);
+            case 1: // Append
+                return func.replace(targetString, targetString + "\n" + code);
+            default:
+                console.error("Invalid Mode");
+        }
+        return func.replace(targetString, targetString + "\n" + code);
+    }
+    GameManager.InjectCode(functionName, alteration, code);
+}
 
 // Menus
 GameManager.optionsMenu = function () {
     var str = '<div class="listing">' +
-        GameManager.MenuElements.Button("GameManager.restart();", "Reload") + `<label>Reloads the game</label><br>`+
-        (GameManager.steam ? GameManager.MenuElements.Button("GameManager.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
-        GameManager.MenuElements.Button("GameManager.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Brings back stuff from web version (e.g. top bar)</label><br>`+
-        GameManager.MenuElements.Button("GameManager.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
-        GameManager.MenuElements.Button("GameManager.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
-        GameManager.MenuElements.Button("GameManager.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` +
+        GameManager.MenuElements.Button("GameManager.features.restart();", "Reload") + `<label>Reloads the game</label><br>` +
+        (GameManager.steam ? GameManager.MenuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
+        GameManager.MenuElements.Button("GameManager.features.webify();", `Webify : ${GMConfig.webify ? "On" : "Off"}`) + `<label>Toggles web stuff (e.g. top bar)</label><br>` +
+        GameManager.MenuElements.Button("GameManager.features.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
+        GameManager.MenuElements.Button("GameManager.features.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
+        GameManager.MenuElements.Button("GameManager.features.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` +
         `<br><label>Made by x8c8r with love <3</label>` +
         `</div>`;
     return str;
@@ -219,48 +183,88 @@ GameManager.additionalStats = function () {
     return str;
 }
 
-
 // Features
-GameManager.restart = function () {
-    Game.Notify(`Restarting the game!`, '', [0, 0, GameManager.icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
-    Game.toSave = true;
-    Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
-}
+GameManager.features = {
+    webify: function (load = false) {
+        if (!load) {
+            Game.Notify(`Toggling the Web features!`, '', [0, 0, GameManager.icon], true);
+            GMConfig.webify = !GMConfig.webify;
+        }
+        if (GMConfig.webify) {
+            Game.wrapper.classList.remove('offWeb');
+            Game.wrapper.classList.add('onWeb');
+        }
+        else {
+            Game.wrapper.classList.add('offWeb');
+            Game.wrapper.classList.remove('onWeb');
+        }
+        Game.UpdateMenu();        
+    },
 
-GameManager.openSesame = function () {
-    Game.Notify(`Opening the sesame!`, '', [0, 0, GameManager.icon], true);
-    Game.OpenSesame();
-}
+    restart: function () {
+        Game.Notify(`Restarting the game!`, '', [0, 0, GameManager.icon], true); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
+        Game.toSave = true;
+        Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
+    },
 
-GameManager.unlockSteamAchievs = function () {
-    Game.Notify(`Unlocking Steam achievements!`, '', [0, 0, GameManager.icon], true);
-    Steam.allowSteamAchievs = true;
-}
+    sleep: function () {
+        Game.Notify(`Timing out the game!`, '', [0, 0, GameManager.icon], true);
+        Game.toSave = true;
+        Game.Timeout();
+    },
 
-GameManager.cheatedCookiesUnlock = function () {
-    Game.Notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GameManager.icon], true);
-    Game.Win('Cheated cookies taste awful');
-}
+    cheatedCookiesUnlock: function () {
+        Game.Notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GameManager.icon], true);
+        Game.Win('Cheated cookies taste awful');
+    },
 
-GameManager.sleep = function () {
-    Game.Notify(`Timing out the game!`, '', [0, 0, GameManager.icon], true);
-    Game.Timeout();
-}
+    unlockSteamAchievs: function () {
+        Game.Notify(`Unlocking Steam achievements!`, '', [0, 0, GameManager.icon], true);
+        Steam.allowSteamAchievs = true;        
+    },
 
-GameManager.webify = function () {
-    Game.Notify(`Toggling the Web features!`, '', [0, 0, GameManager.icon], true);
-    GMConfig.webify = !GMConfig.webify;
-    if (GMConfig.webify) {
-        Game.wrapper.classList.remove('offWeb');
-        Game.wrapper.classList.add('onWeb');
+    openSesame: function () {
+        Game.Notify(`Opening the sesame!`, '', [0, 0, GameManager.icon], true);
+        Game.OpenSesame();
     }
-    else {
-        Game.wrapper.classList.add('offWeb');
-        Game.wrapper.classList.remove('onWeb');
-    }
-    Game.UpdateMenu();
+}
+
+
+// ACTUAL MOD
+GameManager.init = function () {
+    let mod = Game.mods[GameManager.id];
+    GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
+    Game.Notify(`Loaded Game Manager v${GameManager.version}`, '', [0, 0, GameManager.icon], true);
+
+    // Inject menus in 
+    GameManager.ReplaceFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", `
+        if (Game.onMenu == 'prefs'){
+            GameManager.appendOptionsMenu(GameManager.name, GameManager.optionsMenu());
+        }
+        if (Game.onMenu == 'stats'){
+            GameManager.appendGenStats(GameManager.additionalStats());
+        }
+        if (Game.onMenu=='log'){
+            GameManager.prependInfoMenu(GameManager.name, GameManager.changelog());
+        }
+        `, 1);
 
 }
+
+GameManager.save = function () {
+    var save = JSON.stringify(GMConfig);
+    return save;
+}
+
+GameManager.load = function (str) {
+    if (!str) return;
+    GMConfig = JSON.parse(str);
+
+    // Webify
+    GameManager.features.webify(true);
+}
+
+Game.registerMod('x8c8r.gameManager', GameManager);
 
 // Changelog
 GameManager.changelog = function () {
@@ -271,17 +275,24 @@ GameManager.changelog = function () {
 
         `<div class="subsection"><div class="title">Game Manager ChangeLog</div>` +
 
+        `</div><div class="subsection update small"><div class="title">08/01/2023 - Colder fix</div>` +
+        `</div><div class="listing">Hehe, guess what? I broke openning sesame! It's fixed now tho...</div>` +
+
+        `</div><div class="subsection update small"><div class="title">03/01/2023 - Cold fix</div>` +
+        `</div><div class="listing">So... I kind of forgot to make v2 compatible with web. For some stupid reason, the web version doesn't
+            like when the functions are used before they get created later, so I had to change that.</div>` +
+
         `</div><div class="subsection update"><div class="title">03/01/2023 - Evolution Update (Version 2.0)</div>` +
         `</div><div class="listing">First update of 2023 and you bet it's a big one...</div>` +
         `</div><div class="listing" style="font-weight:bold;color:green;">&bull; Complete rewrite, and no more CCSE dependency... at all.` +
         `</div><div class="listing" >To be fair, I didn't rewrite it completely from scratch, I rewrote a lot of CCSE code to make this even possible
-but overall, I didn't need a lot of stuff CCSE provided. The mod is still pretty much the same size, but now it can also load before other CCSE mods!</div>` +
+            but overall, I didn't need a lot of stuff CCSE provided. The mod is still pretty much the same size, but now it can also load before other CCSE mods!</div>` +
         `</div><div class="listing warning" style="font-weight:bold;">&bull; Removal of experimental stuff` +
         `</div><div class="listing">I had to remove stuff like Seed Changer and Achievement Unlocker due to the menus updating
-every 5 seconds no matter what you do, and resetting input boxes. Webify is still left though.</div>` +
+            every 5 seconds no matter what you do, and resetting input boxes. Webify is still left though.</div>` +
         `</div><div class="listing" style="font-weight:bold;">&bull; Configuration!` +
         `</div><div class="listing">I always wanted to make it so you can toggle something, and the mod will remember it. Well...
-now it can be done! And it is being used by webify!</div>` +
+            now it can be done! And it is being used by webify!</div>` +
 
         `</div><div class="subsection update small"><div class="title">21/10/2022</div>` +
         `</div><div class="listing">&bull; Updated the links and names because nickname change.</div>` +
