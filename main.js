@@ -1,23 +1,33 @@
-if (GameManager === undefined) var GameManager = {
+let GameManager = {
     name: 'Game Manager',
     id: 'x8c8r.gameManager',
-    version: 2.003,
+    version: 2.010,
     gameVersion: Game.gameVersion,
     steam: typeof (Steam) !== 'undefined',
     config: {},
 }
-if (GMConfig === undefined) var GMConfig = {
+let GMConfig = {
+    defValues: {
+        webify: false,
+        showNotis: true,
+        additionalStats: true,
+    },
     values: {},
-    update: () => {
-        GameManager.webify(true);
-    }
-}
-GMConfig.defValues = {
-    webify: false,
-    showNotis: false,
 }
 GMConfig.values = GMConfig.defValues;
+
 GMConfig.reset = () => GMConfig.values = GMConfig.defValues;
+GMConfig.update = () => {
+    GameManager.features.webify(true);
+}
+// Fill the config with missing values
+GMConfig.fill = () => {
+    for (let value in GMConfig.defValues) {
+        if (value in GMConfig.values !== true) {
+            GMConfig.values[value] = GMConfig.defValues[value];
+        }
+    }
+}
 
 GameManager.wrappers = {
     notify: (title, desc, icon, quick) => {
@@ -34,16 +44,16 @@ GameManager.wrappers = {
 // Menu Helpers
 GameManager.menu = {
     appendOptionsMenu: function (title, body) {
-        var titleDiv = document.createElement('div');
+        let titleDiv = document.createElement('div');
         titleDiv.className = title;
         titleDiv.textContent = title;
         titleDiv.classList = ["title"];
 
         // This is needed so everything is styled properly
-        var container = document.createElement('div');
+        let container = document.createElement('div');
         container.classList = ["subsection"];
 
-        var bodyDiv;
+        let bodyDiv;
         if (typeof (body == 'string')) {
             bodyDiv = document.createElement('div');
             bodyDiv.innerHTML = body;
@@ -52,19 +62,19 @@ GameManager.menu = {
             bodyDiv = body;
         }
 
-        var toShow = true;
+        let toShow = true;
 
         container.appendChild(titleDiv);
         if (toShow) container.appendChild(bodyDiv);
 
-        var div = document.createElement('div');
+        let div = document.createElement('div');
         div.appendChild(container);
         div.classList = ["block"];
         div.style = "padding:0px;margin:8px 4px;";
 
-        var menu = l("menu");
+        let menu = l("menu");
         if (!menu) return;
-        var padding = menu.childNodes;
+        let padding = menu.childNodes;
         padding = padding[padding.length - 1];
 
         if (padding) {
@@ -76,7 +86,7 @@ GameManager.menu = {
     },
 
     appendGenStats: function (body) {
-        var div;
+        let div;
         if (typeof (body) == 'string') {
             div = document.createElement('div');
             div.innerHTML = body;
@@ -85,54 +95,53 @@ GameManager.menu = {
             div = body;
         }
 
-        var genStats = l('statsGeneral');
+        let genStats = l('statsGeneral');
         if (genStats) genStats.appendChild(div);
     },
 
     prependInfoMenu: function (title, body) {
-        var titleDiv = document.createElement('div');
+        let titleDiv = document.createElement('div');
         titleDiv.className = title;
         titleDiv.textContent = title;
         titleDiv.classList = ["title"];
 
         // This is needed so the title is styled properly
-        var titleContainer = document.createElement('div');
+        let titleContainer = document.createElement('div');
         titleContainer.classList = ["subsection"];
         titleContainer.appendChild(titleDiv);
 
-        var bodyDiv;
-        if (typeof (body == 'string')) {
-            bodyDiv = document.createElement('div');
+        let bodyDiv = document.createElement('div');
+        if (typeof (body === 'string')) {
             bodyDiv.innerHTML = body;
         }
         else {
-            bodyDiv = body;
+            bodyDiv.innerHTML = body.innerHTML;
         }
 
-        var div = document.createElement('div');
+        let div = document.createElement('div');
         div.appendChild(titleContainer);
         div.appendChild(bodyDiv);
 
-        var menu = l('menu');
+        let menu = l('menu');
         if (!menu) return;
-        var about = menu.getElementsByClassName('subsection')[0];
+        let about = menu.getElementsByClassName('subsection')[0];
         if (!about) return;
         about.parentNode.insertBefore(div, about);
     },
 
     appendInfoMenu: function (title, body) {
-        var titleDiv = document.createElement('div');
+        let titleDiv = document.createElement('div');
         titleDiv.className = title;
         titleDiv.textContent = title;
         titleDiv.classList = ["title"];
 
         // This is needed so the title is styled properly
-        var titleContainer = document.createElement('div');
+        let titleContainer = document.createElement('div');
         titleContainer.classList = ["subsection"];
         titleContainer.appendChild(titleDiv);
 
-        var bodyDiv;
-        if (typeof (body == 'string')) {
+        let bodyDiv;
+        if (typeof (body === 'string')) {
             bodyDiv = document.createElement('div');
             bodyDiv.innerHTML = body;
         }
@@ -140,7 +149,7 @@ GameManager.menu = {
             bodyDiv = body;
         }
 
-        var div = document.createElement('div');
+        let div = document.createElement('div');
         div.appendChild(titleContainer);
         div.appendChild(bodyDiv);
         menu.appendChild(div);
@@ -156,18 +165,18 @@ GameManager.menuElements = {
 // Code Injection
 GameManager.code = {
     injectCode: function (functionName, alteration) {
-        var og = eval(functionName);
+        let og = eval(functionName);
         if (og === null) {
             console.error(`"${functionName}" is not found`);
         }
-        if (typeof(og) !== "function") {
+        if (typeof (og) !== "function") {
             console.error(`"${functionName}" is not a function`)
         }
         eval(functionName + "=" + alteration(og.toString()));
     },
 
     injectFunctionCode: function (functionName, targetString, code, mode) {
-        var alteration = (func) => {
+        let alteration = (func) => {
             switch (mode) {
                 case -1: // Prepend
                     return func.replace(targetString, code + "\n" + targetString);
@@ -185,7 +194,7 @@ GameManager.code = {
     // Completely swaps all the code in a function
     replaceFunction: function (functionName, code, args) {
         if (args === undefined) args = "";
-        var alteration = (func) => {
+        let alteration = (func) => {
             return `function(${args.toString()}) { ${code} }`;
         }
         GameManager.code.injectCode(functionName, alteration, code);
@@ -198,104 +207,118 @@ GameManager.code = {
 // Menus
 GameManager.menus = {
     optionsMenu: () => {
-        var str = '<div class="listing">' +
-            GameManager.menuElements.Button("GameManager.features.restart();", "Reload") + `<label>Reloads the game</label><br>` +
-            (GameManager.steam ? GameManager.menuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements") + `<label>Allows Steam achievements to be unlocked</label><br>` : "") +
-            GameManager.menuElements.Button("GameManager.features.webify();", `Webify : ${GMConfig.values.webify ? "On" : "Off"}`) + `<label>Toggles web stuff (e.g. top bar)</label><br>` +
-            GameManager.menuElements.Button("GameManager.features.openSesame();", "Open Sesame") + `<label>Opens Sesame</label><br>` +
-            GameManager.menuElements.Button("GameManager.features.cheatedCookiesUnlock();", "Cheated cookies taste awful") + `<label>Unlocks "Cheated cookies taste awful" achievement</label><br>` +
-            GameManager.menuElements.Button("GameManager.features.sleep();", "Sleep") + `<label>Puts your game on the pause screen, as if "Sleep mode timeout" option was on</label><br>` + `<br><br>` +
-            GameManager.menuElements.Button("GameManager.features.updateMenu();", "Update Menus") + `<label>Forcefully updates the menus</label><br>` +
-            GameManager.menuElements.Button("GameManager.features.unlockAchiev();", "Unlock Achievement") + `<label>Unlock any achievement</label><br>` +
-            GameManager.menuElements.Button("GameManager.features.editConf();", "Edit Config") + `<label>Edit your config</label><br>` +
-            `<br><label>Made by x8c8r with love <3</label>` +
-            `</div>`; return str;
-    },
+        let str =
+        '<div class="listing">'+
 
-    additionalStats: function () {
-        var str =
-            `<div class="listing"><b>Missed golden cookies: </b>` + Beautify(Game.missedGoldenClicks) + `</div>` +
-            `<div class="listing"><b>Seed: </b>` + Game.seed + `</div>`;
+        '<div class="subsection">Convenience</div>'+
+        GameManager.menuElements.Button("GameManager.features.restart();", "Reload")+'<label>Reloads the game</label>'+'<br>'+
+        (GameManager.steam ? GameManager.menuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>':'')+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'+
+
+        '<br>'+
+
+        '<div class="subsection">Hacks</div>'+
+        GameManager.menuElements.Button("GameManager.features.cheatedCookiesUnlock();", "Cheat (0) cookies")+'<label>Unlocks "Cheated cookies taste awful" achievement</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.unlockAchiev();", "Unlock Achievement")+'<label>Unlock ANY achievement (as long as you type it right)</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
+        
+        '<br>'+
+        
+        '<div class="subsection">Fun/Cosmetic</div>'+
+        GameManager.menuElements.Button("GameManager.features.webify(false);", "Webification: "+(GMConfig.values.webify?"On":"Off"))+'<label>Toggle the web version stuff</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.toggleAdditionalStats(false);", "Additional statistics: "+(GMConfig.values.additionalStats?"On":"Off"))+'<label>Toggles additional statistics in the info menu</label>'+'<br>'+
+                
+        '<br>'+
+        
+        '<div class="subsection">Mod Options</div>'+
+        GameManager.menuElements.Button("GameManager.features.toggleNotis();", "Show Notifications: "+(GMConfig.values.showNotis?"On":"Off"))+'<label>Toggle notifications in bottom of the screen on using a mod feature</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.editConf();", "Edit Config")+'<label>Directly edit your Game Manager config</label>'+'<br>'+
+                
+        '<br>'+
+        
+        '<label>Made by x8c8r with love <3</label>'+
+        '</div>'
         return str;
     },
 
-    changelog: function () {
-        var str = `<div class="subsection"><div class="listing">Game Manager is a mod to control the game you are playing. Think of it as a kind of a swiss knife for both modmakers and players.</div>` +
-            `<div class="subsection"><div class="listing">In development since December 2021.</div>` +
-            `<div class="subsection"><div class="listing">Made by x8c8r(<a href="https://steamcommunity.com/id/x8c8r" target="_blank">Steam</a>, <a href="https://github.com/x8c8r target="_blank">GitHub</a>)</div>` +
-            `<div class="subsection"><div class="listing">Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/x8c8r/cc-gamemanager/issues">GitHub Repo</a>.</div>` +
-
-            `<div class="subsection"><div class="title">Game Manager ChangeLog</div>` +
-
-            `</div><div class="subsection update small"><div class="title">11/01/2023 - Patch 13</div>` +
-            `</div><div class="listing">&bull; Achievement-related features now tell more things in various cases (e.g. achievement being unlocked).</div>` +
-            `</div><div class="listing">&bull; Added ability to unlock any achievement by it's name (again). The implementation is a bit clunky but it just works!</div>` +
-
-            `</div><div class="subsection update small"><div class="title">08/01/2023 - Colder fix</div>` +
-            `</div><div class="listing">Hehe, guess what? I broke openning sesame! It's fixed now tho...</div>` +
-
-            `</div><div class="subsection update small"><div class="title">03/01/2023 - Cold fix</div>` +
-            `</div><div class="listing">So... I kind of forgot to make v2 compatible with web. For some stupid reason, the web version doesn't
-            like when the functions are used before they get created later, so I had to change that.</div>` +
-
-            `</div><div class="subsection update"><div class="title">03/01/2023 - Evolution Update (Version 2.0)</div>` +
-            `</div><div class="listing">First update of 2023 and you bet it's a big one...</div>` +
-            `</div><div class="listing" style="font-weight:bold;color:green;">&bull; Complete rewrite, and no more CCSE dependency... at all.` +
-            `</div><div class="listing" >To be fair, I didn't rewrite it completely from scratch, I rewrote a lot of CCSE code to make this even possible
-            but overall, I didn't need a lot of stuff CCSE provided. The mod is still pretty much the same size, but now it can also load before other CCSE mods!</div>` +
-            `</div><div class="listing warning" style="font-weight:bold;">&bull; Removal of experimental stuff` +
-            `</div><div class="listing">I had to remove stuff like Seed Changer and Achievement Unlocker due to the menus updating
-            every 5 seconds no matter what you do, and resetting input boxes. Webify is still left though.</div>` +
-            `</div><div class="listing" style="font-weight:bold;">&bull; Configuration!` +
-            `</div><div class="listing">I always wanted to make it so you can toggle something, and the mod will remember it. Well...
-            now it can be done! And it is being used by webify!</div>` +
-
-            `</div><div class="subsection update small"><div class="title">21/10/2022</div>` +
-            `</div><div class="listing">&bull; Updated the links and names because nickname change.</div>` +
-
-            `</div><div class="subsection update small"><div class="title">16/04/2022</div>` +
-            `</div><div class="listing">&bull; Added an ability to open sesame.</div>` +
-            `</div><div class="listing">&bull; Made it so you can only activate additional statistics once.</div>` +
-
-            `</div><div class="subsection update small"><div class="title">06/03/2022</div>` +
-            `</div><div class="listing">&bull; Additional statistics now have to be turned on first before being shown.</div>` +
-
-
-            `</div><div class="subsection update small"><div class="title">11/01/2022</div>` +
-            `</div><div class="listing">&bull; Added some additional statistics in the "Stats" menu.</div>` +
-            `</div><div class="listing">&bull; Fixed a bug where if you click "Unlock Experimental" button several times, it will open several tabs.</div>` +
-
-            `</div><div class="subsection update small"><div class="title">10/01/2022</div>` +
-            `</div><div class="listing">&bull; Added a disclaimer to the Experimental tab.</div>` +
-            `</div><div class="listing">&bull; Experimental tab now only opens if you wish for it.</div>` +
-            `</div><div class="listing">&bull; Sent a PR to klattmose so CCSE buttons will look constistent to vanilla game ones. Idk why I am writing this here, but no one reads this anyways, might as well share some personal experience.</div>` +
-            `</div><div class="listing">&bull; EXPERIMENTAL: Added a "Webification" feature, which basically makes Steam version of the game look like it used to on Web. Currently only restores the topbar.</div>` +
-            `</div><div class="listing">&bull; EXPERIMENTAL: Added a feature to change your seed. More info is in the explanation label.</div>` +
-
-            `</div><div class="subsection update small"><div class="title">09/01/2022</div>` +
-            `</div><div class="listing">&bull; Added an ability to put the game to sleep, as if "Sleep mode timeout" was on.</div>` +
-            `</div><div class="listing">&bull; Made a custom icon, in place of just using a JSC one.` +
-            `</div><div class="listing"> Somehow broke my game so it doesn't reload anymore</div>` +
-
-            `</div><div class="subsection update"><div class="title">08/01/2022</div>` +
-            `</div><div class="listing">This update got pretty big, compared to other small ones. I surpassed my own expectations, and I think, I can do even better at some point.</div>` +
-            `</div><div class="listing">&bull; Added an ability to unlock the "Cheated cookies taste awful" achievement</div>` +
-            `</div><div class="listing">&bull; Added changelog in the "Info" tab</div>` +
-            `</div><div class="listing">&bull; Game is now saved before getting reloaded. So, that after reload you are immediately at where you left it before.</div>` +
-            `</div><div class="listing">&bull; Added an explanation label to every feature.</div>` +
-            `</div><div class="listing">&bull; Changed feature buttons' names to be more interesting, because now there are explanation labels.</div>` +
-            `</div><div class="listing warning" style="font-weight:bold">&bull; Added experimental features tab. Features in there are unstable.</div>` +
-            `</div><div class="listing">&bull; EXPERIMENTAL: Added an ability to unlock any achievement in the game by typing in it's name.</div>` +
-
-            `</div><div class="subsection update small"><div class="title">30/12/2021</div>` +
-            `</div><div class="listing">&bull; Sorted features to "Steam only" and "Not Steam only".</div>` +
-            `</div><div class="listing">&bull; Released Game Manager for use on the web version of Cookie Clicker. <a href="http://fl1pnatic.github.com/cc-gamemanager" target="_blank">Link</a></div>` +
-
-            `</div><div class="subsection update"><div class="title">29/12/2021 - initial release</div>` +
-            `</div><div class="listing">&bull; Added an ability to restart the game, because I was tired of constantly having to turn one mod on and off just to restart."</div>` +
-            `</div><div class="listing">&bull; Added and ability to change the version number in left bottom corner to look vanilla, because I was tired of CCSE changing it.</div>`;
+    additionalStats: () => {
+        let str = GMConfig.values.additionalStats?
+            '<div class="subsection">'+
+            '<div class="title">Additional</div>'+
+            '<div class="listing"><b>Missed golden cookies: </b>'+ Beautify(Game.missedGoldenClicks) +'</div>'+
+            '<div class="listing"><b>Seed: </b>' + Game.seed +'</div>'+
+            '</div>'
+            :'';
         return str;
     },
+
+    buildInfo: () => {
+        GameManager.changelog = document.createElement('div');
+
+        let infoContainer = document.createElement("div");
+        infoContainer.classList.add("subsection");
+
+        let modInfo = document.createElement('div');
+        modInfo.classList.add("subsection");
+        modInfo.innerHTML = '<div class="listing">Game Manager is a mod to control the game you are playing. Think of it as a kind of a swiss knife for both modmakers and players. <br><br>' +
+        'In development since December 2021. <br><br>' +
+        'Made by x8c8r <br>'+
+        '<a href="https://steamcommunity.com/id/x8c8r" target="_blank">Steam</a>, <a href="https://github.com/x8c8r" target="_blank">GitHub</a> <br><br>'+
+        'Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/x8c8r/cc-gamemanager/issues">GitHub Repo</a>. </div> <br>'
+        
+        infoContainer.appendChild(modInfo);
+
+        let changelog = document.createElement('div');
+        changelog.classList.add("subsection");
+
+        let updateLog = 
+        '<div class="subsection"><div class="title">Game Manager Version history</div>'+
+
+        '<div class="subsection update">' +
+        '<div class="title">17/01/2023 - the exhausted update (v2.01)</div>'+
+        '<div class="listing">Sorry, this update took way too much time than it should have. I am really tired as of writing this changelog. I have tried doing a lot of things for this update and only some worked out.</div>'+
+        '<div class="listing">&bull; Slightly changed the way changelog works. (I cut out all previous patches, sorry)</div>'+
+        '<div class="listing">&bull; Added changing the seed</div>'+
+        '<div class="listing">&bull; Sorted features by categories, and improved some of the names and labels</div>'+
+        '<div class="listing">&bull; Made additional stats toggleable</div>'+
+        '<div class="listing">&bull; Replaced all let\'s with var\'s in the code</div>'+
+        '<div class="listing">&bull; To prevent errors, config now can regenerate lost keys that were either added in a new update/were removed by the user</div>'+
+        '<div class="listing">&bull; And to compliment previous change: Config editor! You can find it at the bottom of GM\'s options menu</div>'+
+        '</div>'+
+        
+        '<div class="subsection update small">'+
+        '<div class="title">11/01/2023 - patch 3</div>'+
+        '<div class="listing">&bull; Achievement-related features now display more info in various cases, to avoid confusion</div>'+
+        '<div class="listing">&bull; Added ability to unlock any achievement by it\'s name</div>'+
+        '</div>'+
+
+        '<div class="subsection update">'+
+        '<div class="title">03/01/2022 - evolution update (v2.0)</div>'+
+        '<div class="listing">First update of 2023 and you bet it\'s a big one...</div>'+
+        '<div class="listing" style=";color:green;">&bull; Complete rewrite, and no more CCSE dependency... at all.</div>'+
+        '<div class="listing">&bull; New config system</div>'+
+        '</div>'+
+
+        '<div class="subsection update">'+
+        '<div class="title">29/12/2021 - initial release</div>'+
+        '<div class="listing">&bull; Added restart button to easily restart the game.</div>'+
+        '</div>'+
+
+        '</div>';
+
+        changelog.innerHTML = updateLog;
+
+        infoContainer.appendChild(changelog);
+        GameManager.changelog.appendChild(infoContainer);
+        
+    },
+
+    infoMenu: () => {
+        return GameManager.changelog;
+    }
+
 }
 
 // Features
@@ -313,6 +336,18 @@ GameManager.features = {
             Game.wrapper.classList.add('offWeb');
             Game.wrapper.classList.remove('onWeb');
         }
+        Game.UpdateMenu();
+    },
+
+    toggleAdditionalStats: function () {
+        GMConfig.values.additionalStats = !GMConfig.values.additionalStats;
+        GameManager.wrappers.notify(`Toggling additional stats!`, '', [0, 0, GameManager.icon], true);
+        Game.UpdateMenu();
+    },
+
+    toggleNotis: function () {
+        GMConfig.values.showNotis = !GMConfig.values.showNotis;
+        Game.Notify('Notifications: '+(GMConfig.values.showNotis?"On":"Off"), '', [0, 0, GameManager.icon], true); // I need to directly notify
         Game.UpdateMenu();
     },
 
@@ -360,7 +395,7 @@ GameManager.features = {
 
     unlockAchiev: function () {
         const uA = function () {
-            var ac = l('achName').value;
+            let ac = l('achName').value;
 
             if (!ac.length > 0) return;
 
@@ -381,17 +416,37 @@ GameManager.features = {
 		<input type='text' class='option' id='achName'></input></div>`, [['Unlock', GameManager.code.functionToString(uA)], 'Cancel']);
         l('achName').focus();
     },
-    //this might be the worst code i ever wrote
+
+    changeSeed: function () {
+        const cS = () => {
+            let seed = l('seedInput').value;
+
+            if (!seed.length > 0) return;
+
+            GameManager.wrappers.notify('Changing seed to: ' + seed, '', [0, 0, GameManager.icon], true);
+            Game.seed = seed;
+        };
+
+        Game.Prompt('<h3>Change seed</h3><div class="block">A "seed" is a unique combination of letters that determines random events during your playthrough, it doesn\'t get reset on ascensions</div>'+
+        '<div class="block">Enter new seed:<br><br>'+
+        '<input type="text" class="option" id="seedInput"></input>'+
+        '</div>', [["Change", GameManager.code.functionToString(cS)], "Cancel"]);
+    },
+
     editConf: function () {
-        const confSave = () => GMConfig.values = JSON.parse(conf);
-        const confInfo = `<div class="block" style="overflow-y:scroll;width:100%;>
+        const confSave = () => {
+            GMConfig.values = JSON.parse(confEdit.value);
+            GMConfig.fill();
+            confEdit.value = JSON.stringify(GMConfig.values)
+        }
+
+        const confInfo = `<h2>Config values:</h2><div class="block" style="overflowY:scroll;width:90%;height:70px">
             webify - Whether "Webify" is turned on or off <br>
-            showNotis - Whether to show notifications on actions <br> <br>
-            yo <br>
+            showNotis - Whether to show notifications on actions <br>
         </div>`;
 
-        var confReset = () => GMConfig.reset();
-        Game.Prompt(`<h3>Config</h3>)<input type="text" class="option" id="confEdit" value=${JSON.stringify(GMConfig.values)}></input> <br> ${confInfo}</div>`, [['Save', GameManager.code.functionToString(confSave)], ['Reset to default', GameManager.code.functionToString(confReset)], 'Cancel']);
+        let confReset = () => GMConfig.reset();
+        Game.Prompt(`<h3>Config</h3>)<input type="text" class="option" id="confEdit" style="height:50px;width:90%;"value=${ JSON.stringify(GMConfig.values)}></input> <br><br> ${confInfo}<br> </div>`, [['Save', GameManager.code.functionToString(confSave)], ['Reset to default', GameManager.code.functionToString(confReset)], 'Cancel']);
         confEdit.focus();
     }
 
@@ -401,10 +456,11 @@ GameManager.features = {
 GameManager.init = function () {
     let mod = Game.mods[GameManager.id];
     GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
+    GameManager.menus.buildInfo();
     Game.Notify(`Loaded Game Manager!`, `Version ${GameManager.version}`, [0, 0, GameManager.icon], true);
 
     // Inject menus in
-    var menuInject = () => {
+    let menuInject = () => {
         if (Game.onMenu == 'prefs') {
             GameManager.menu.appendOptionsMenu(GameManager.name, GameManager.menus.optionsMenu());
         }
@@ -412,7 +468,7 @@ GameManager.init = function () {
             GameManager.menu.appendGenStats(GameManager.menus.additionalStats());
         }
         if (Game.onMenu == 'log') {
-            GameManager.menu.prependInfoMenu(GameManager.name, GameManager.menus.changelog());
+            GameManager.menu.prependInfoMenu(GameManager.name, GameManager.menus.infoMenu().innerHTML); // Cheap fix, still have yet to understand why no work
         }
     };
 
@@ -420,13 +476,14 @@ GameManager.init = function () {
 }
 
 GameManager.save = function () {
-    var save = JSON.stringify(GMConfig.values);
+    let save = JSON.stringify(GMConfig.values);
     return save;
 }
 
 GameManager.load = function (str) {
     if (!str) return;
     GMConfig.values = JSON.parse(str);
+    GMConfig.fill();
     GMConfig.update();
 }
 
