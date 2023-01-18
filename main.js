@@ -201,7 +201,11 @@ GameManager.code = {
     },
 
     // Convert function to a string, to be used in injections/prompts
-    functionToString: (functionName) => `(${String(functionName)})(); `,
+    functionToString: function (functionName, args) {
+        if (args === undefined) args = "";
+
+        return`(${String(functionName)})(${args.toString()});`;
+    },
 }
 
 // Menus
@@ -212,7 +216,7 @@ GameManager.menus = {
 
         '<div class="subsection">Convenience</div>'+
         GameManager.menuElements.Button("GameManager.features.restart();", "Reload")+'<label>Reloads the game</label>'+'<br>'+
-        (GameManager.steam ? GameManager.menuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>':'')+'<br>'+
+        (GameManager.steam ? (GameManager.menuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>'+'<br>'):'')+
         GameManager.menuElements.Button("GameManager.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
         GameManager.menuElements.Button("GameManager.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
         GameManager.menuElements.Button("GameManager.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'+
@@ -221,7 +225,9 @@ GameManager.menus = {
 
         '<div class="subsection">Hacks</div>'+
         GameManager.menuElements.Button("GameManager.features.cheatedCookiesUnlock();", "Cheat (0) cookies")+'<label>Unlocks "Cheated cookies taste awful" achievement</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.unlockAchiev();", "Unlock Achievement")+'<label>Unlock ANY achievement (as long as you type it right)</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.thirdParty();", "Join Third-Party")+'<label>Unlocks "Third-party" achievement</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.toggleAchiev(true);", "Unlock Achievement")+'<label>UNLOCK any achievement (as long as you type it right)</label>'+'<br>'+
+        GameManager.menuElements.Button("GameManager.features.toggleAchiev(false);", "Lock Achievement")+'<label>LOCK ANY achievement (as long as you type it right)</label>'+'<br>'+
         GameManager.menuElements.Button("GameManager.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
         
         '<br>'+
@@ -275,6 +281,12 @@ GameManager.menus = {
 
         let updateLog = 
         '<div class="subsection"><div class="title">Game Manager Version history</div>'+
+
+        '<div class="subsection update small">'+
+        '<div class="title">18/01/2023 - patch 5</div>'+
+        '<div class="listing">&bull; Added a feature to lock any achievement</div>'+
+        (!GameManager.steam?'<div class="listing">&bull; The menu now correctly deals with Steam-only features on web.</div>':'')+
+        '</div>'+
 
         '<div class="subsection update">' +
         '<div class="title">17/01/2023 - the exhausted update (v2.01)</div>'+
@@ -373,6 +385,16 @@ GameManager.features = {
         }
     },
 
+    thirdParty: function () {
+        if (!Game.Achievements['Third-party'].won) {
+            GameManager.wrappers.notify(`Unlocking "Third-party"!`, '', [0, 0, GameManager.icon], true);
+            Game.Win('Third-party')
+        }
+        else {
+            GameManager.wrappers.notify(`"Third-party" is already unlocked!`, '', [0, 0, GameManager.icon], true);
+        }
+    },
+
     unlockSteamAchievs: function () {
         if (!Steam.allowSteamAchievs) {
             GameManager.wrappers.notify(`Enabling Steam achievements!`, '', [0, 0, GameManager.icon], true);
@@ -393,27 +415,38 @@ GameManager.features = {
         Game.UpdateMenu();
     },
 
-    unlockAchiev: function () {
-        const uA = function () {
+    toggleAchiev: function (mode) {
+        const uA = function (mode) {
             let ac = l('achName').value;
 
             if (!ac.length > 0) return;
 
             if (!Game.Achievements[ac]) {
-                GameManager.wrappers.notify('Achievement does not exist!', '', [0, 0, GameManager.icon], true);
+                GameManager.wrappers.notify('Achievement "'+ac+'" does not exist!', '', [0, 0, GameManager.icon], true);
                 return;
             }
 
-            if (Game.Achievements[ac].won) {
-                GameManager.wrappers.notify('Achievement was already unlocked!', '', [0, 0, GameManager.icon], true);
-                return;
-            }
+            if (mode) {
+                if (Game.Achievements[ac].won) {
+                    GameManager.wrappers.notify('Achievement "'+ac+'" was already unlocked!', '', [0, 0, GameManager.icon], true);
+                    return;
+                }
 
-            GameManager.wrappers.notify('Unlocking achievement!}"', '', [0, 0, GameManager.icon], true);
-            Game.Win(ac);
+                GameManager.wrappers.notify('Unlocking achievement "'+ac+'"!', '', [0, 0, GameManager.icon], true);
+                Game.Win(ac);
+            }
+            else {
+                if (!Game.Achievements[ac].won) {
+                    GameManager.wrappers.notify('Achievement "'+ac+'" was already locked!', '', [0, 0, GameManager.icon], true);                    
+                }
+                GameManager.wrappers.notify('Locking achievement "'+ac+'"!', '', [0, 0, GameManager.icon], true);
+                Game.Achievements[ac].won = 0;
+            }
         }
-        Game.Prompt(`<h3>Unlock Achievement</h3><div class="block">Enter name of the achievement (Case Sensitive):<br><br>
-		<input type='text' class='option' id='achName'></input></div>`, [['Unlock', GameManager.code.functionToString(uA)], 'Cancel']);
+        Game.Prompt('<h3>'+(mode?'Unlock':'Lock')+' Achievement</h3>'+
+        '<div class="block">Enter name of the achievement (Case Sensitive):<br><br>'+
+		'<input type="text" class="option" id="achName"></input></div>',
+        [[mode?'Unlock':'Lock', GameManager.code.functionToString(uA, [mode])], 'Cancel']);
         l('achName').focus();
     },
 
