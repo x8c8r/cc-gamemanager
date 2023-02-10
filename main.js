@@ -1,37 +1,76 @@
-let GameManager = {
-    name: 'Game Manager',
-    id: 'x8c8r.gameManager',
-    version: 2.010,
-    gameVersion: Game.gameVersion,
-    steam: typeof (Steam) !== 'undefined',
-    config: {},
-}
-let GMConfig = {
-    defValues: {
-        webify: false,
-        showNotis: true,
-        additionalStats: true,
-    },
-    values: {},
-}
-GMConfig.values = GMConfig.defValues;
+// Config
+// i swear this thing is so unreasonably complex for a cookie game mod
+let GMConfig = {};
 
-GMConfig.reset = () => GMConfig.values = GMConfig.defValues;
-GMConfig.update = () => {
-    GameManager.features.webify(true);
+GMConfig.entries=[];
+GMConfig.entry = function(name, desc, defValue) {
+    this.name = name;
+    this.desc = desc;
+    this.defValue = defValue;
+    this.value = this.defValue;
+
+    GMConfig.entries[this.name] = this;
 }
-// Fill the config with missing values
-GMConfig.fill = () => {
-    for (let value in GMConfig.defValues) {
-        if (value in GMConfig.values !== true) {
-            GMConfig.values[value] = GMConfig.defValues[value];
+GMConfig.entry.prototype.getEntry = function() {
+    return {
+        name: this.name,
+        value: this.value
+    }
+}
+GMConfig.setValue = function(entry, value) {
+    GMConfig.entries[entry].value = value;
+}
+
+GMConfig.getValue = function(entryName) {
+    if (entryName in GMConfig.entries)
+        return GMConfig.entries[entryName].value;
+}
+
+GMConfig.getConfig = function() {
+    let config = {};
+    for (let i in GMConfig.entries) {
+        let value = Object.values(GMConfig.entries[i].getEntry());
+        config[value[0]] = value[1];
+    }
+    return config;
+}
+GMConfig.loadConfig = function(c) {
+    let values = Object.values(c);
+    let keys = Object.keys(c)
+    for (let i in keys) {
+        if (keys[i] in GMConfig.entries) {
+            if (typeof (values[i]) === 'undefined') values[i] = GMConfig.entries[keys[i]].defValue;
+            GMConfig.setValue(keys[i], values[i]);
         }
     }
 }
+GMConfig.reset = () => {
+    for (let i in GMConfig.entries) {
+        let entry = GMConfig.entries[i];
+        if(entry in GMConfig.entries)
+            GMConfig.setValue(GMConfig.entries[i].name, GMConfig.entries[i].defValue);
+    }
+}
 
-GameManager.wrappers = {
+new GMConfig.entry("Additional Stats", "Whether additional statistics should be on", true);
+new GMConfig.entry("Show Notis", "Whether the mod should display it's notifications", false);
+new GMConfig.entry("Webify", "Whether web things should be on", false);
+
+GMConfig.update = () => {
+    GM.features.webify(true);
+}
+
+let GM = {
+    name: 'Game Manager',
+    id: 'x8c8r.gameManager',
+    version: 2.110,
+    gameVersion: Game.gameVersion,
+    steam: typeof (Steam) !== 'undefined',
+}
+
+GM.wrappers = {
     notify: (title, desc, icon, quick) => {
-        if (!GMConfig.values.showNotis) return;
+        if (!GMConfig.getValue("Show Notis")) return;
         Game.Notify(title, desc, icon, quick);
     }
 }
@@ -42,7 +81,18 @@ GameManager.wrappers = {
     So huge thank you to Klattmose, original code - https://github.com/klattmose/klattmose.github.io/blob/master/CookieClicker/CCSE.js 
 */
 // Menu Helpers
-GameManager.menu = {
+GM.menu = {
+    toggleMenu: [], // Toggleable menus
+
+    toggleCollapseMenu: function (title, prefix) {
+        if (GM.menu.toggleMenu[prefix+title] === 0)
+        GM.menu.toggleMenu[prefix+title] = 1;
+
+        if (GM.menu.toggleMenu[prefix+title] === 1 || 
+            (GM.menu.toggleMenu[prefix+title] !== 1 || GM.menu.toggleMenu[prefix+title] !== 0 || GM.menu.toggleMenu[prefix+title] === undefined))
+        GM.menu.toggleMenu[prefix+title] = 0;
+    },
+
     appendOptionsMenu: function (title, body) {
         let titleDiv = document.createElement('div');
         titleDiv.className = title;
@@ -62,10 +112,8 @@ GameManager.menu = {
             bodyDiv = body;
         }
 
-        let toShow = true;
-
         container.appendChild(titleDiv);
-        if (toShow) container.appendChild(bodyDiv);
+        container.appendChild(bodyDiv);
 
         let div = document.createElement('div');
         div.appendChild(container);
@@ -157,13 +205,13 @@ GameManager.menu = {
 }
 
 // Designs
-GameManager.menuElements = {
-    Button: (func, text) =>
-        '<a class="smallFancyButton option"' + `${Game.clickStr}="${func} PlaySound('snd/tick.mp3');">${text}</a>`,
+GM.menuElements = {
+    Button: (func, text, addStyle = "") =>
+        '<a class="smallFancyButton option '+addStyle+'"' + `${Game.clickStr}="${func} PlaySound('snd/tick.mp3');">${text}</a>`,
 }
 
 // Code Injection
-GameManager.code = {
+GM.code = {
     injectCode: function (functionName, alteration) {
         let og = eval(functionName);
         if (og === null) {
@@ -188,7 +236,7 @@ GameManager.code = {
                     console.error("Invalid Mode");
             }
         }
-        GameManager.code.injectCode(functionName, alteration, code);
+        GM.code.injectCode(functionName, alteration, code);
     },
 
     // Completely swaps all the code in a function
@@ -197,7 +245,7 @@ GameManager.code = {
         let alteration = (func) => {
             return `function(${args.toString()}) { ${code} }`;
         }
-        GameManager.code.injectCode(functionName, alteration, code);
+        GM.code.injectCode(functionName, alteration, code);
     },
 
     // Convert function to a string, to be used in injections/prompts
@@ -209,40 +257,46 @@ GameManager.code = {
 }
 
 // Menus
-GameManager.menus = {
+GM.menus = {
     optionsMenu: () => {
         let str =
         '<div class="listing">'+
 
-        '<div class="subsection">Convenience</div>'+
-        GameManager.menuElements.Button("GameManager.features.restart();", "Reload")+'<label>Reloads the game</label>'+'<br>'+
-        (GameManager.steam ? (GameManager.menuElements.Button("GameManager.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>'+'<br>'):'')+
-        GameManager.menuElements.Button("GameManager.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'+
+        '<div class="subsection">Conveniences</div>'+
+        GM.menuElements.Button("GM.features.restart();", "Reload")+'<label>Reloads the game</label>'+'<br>'+
+        (GM.steam ? (GM.menuElements.Button("GM.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>'+'<br>'):'')+
+        GM.menuElements.Button("GM.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'+
 
-        '<br>'+
+        '<br>'+'<div class="line"></div>'+
 
         '<div class="subsection">Hacks</div>'+
-        GameManager.menuElements.Button("GameManager.features.cheatedCookiesUnlock();", "Cheat (0) cookies")+'<label>Unlocks "Cheated cookies taste awful" achievement</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.thirdParty();", "Join Third-Party")+'<label>Unlocks "Third-party" achievement</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.toggleAchiev(true);", "Unlock Achievement")+'<label>UNLOCK any achievement (as long as you type it right)</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.toggleAchiev(false);", "Lock Achievement")+'<label>LOCK ANY achievement (as long as you type it right)</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.cheatedCookiesUnlock();", "Cheat (0) cookies")+'<label>Unlocks "Cheated cookies taste awful" achievement</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.thirdParty();", "Join Third-Party")+'<label>Unlocks "Third-party" achievement</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.toggleAchiev(true);", "Unlock Achievement")+'<label>UNLOCK any achievement (as long as you type it right)</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.toggleAchiev(false);", "Lock Achievement")+'<label>LOCK ANY achievement (as long as you type it right)</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
         
-        '<br>'+
+        '<br>'+'<div class="line"></div>'+
+
+        '<div class="subsection">Game Progress</div>'+
+        (GM.steam ? (GM.menuElements.Button("GM.features.syncAchievs();", "Sync Achievements")+'<label>Makes Steam regrant you achievements</label>'+'<br>'):'')+
+        GM.menuElements.Button("GM.features.finishResearch();", "Finish Research")+'<label>Finishes research if there is an ongoing one</label>'+'<br>'+
+
+        '<br>'+'<div class="line"></div>'+
         
         '<div class="subsection">Fun/Cosmetic</div>'+
-        GameManager.menuElements.Button("GameManager.features.webify(false);", "Webification: "+(GMConfig.values.webify?"On":"Off"))+'<label>Toggle the web version stuff</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.toggleAdditionalStats(false);", "Additional statistics: "+(GMConfig.values.additionalStats?"On":"Off"))+'<label>Toggles additional statistics in the info menu</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.webify(false);", "Webification: "+(GMConfig.getValue("Webify")?"On":"Off"))+'<label>Toggle the web version stuff</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.toggleAdditionalStats(false);", "Additional statistics: "+(GMConfig.getValue("Additional Stats")?"On":"Off"))+'<label>Toggles additional statistics in the info menu</label>'+'<br>'+
                 
-        '<br>'+
+        '<br>'+'<div class="line"></div>'+
         
         '<div class="subsection">Mod Options</div>'+
-        GameManager.menuElements.Button("GameManager.features.toggleNotis();", "Show Notifications: "+(GMConfig.values.showNotis?"On":"Off"))+'<label>Toggle notifications in bottom of the screen on using a mod feature</label>'+'<br>'+
-        GameManager.menuElements.Button("GameManager.features.editConf();", "Edit Config")+'<label>Directly edit your Game Manager config</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.toggleNotis();", "Show Notifications: "+(GMConfig.getValue("Show Notis")?"On":"Off"))+'<label>Toggle notifications in bottom of the screen on using a mod feature</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.editConf();", "Edit Config", "neato")+'<label>Directly edit your Game Manager config</label>'+'<br>'+
                 
-        '<br>'+
+        '<br>'+'<div class="line"></div>'+
         
         '<label>Made by x8c8r with love <3</label>'+
         '</div>'
@@ -250,10 +304,11 @@ GameManager.menus = {
     },
 
     additionalStats: () => {
-        let str = GMConfig.values.additionalStats?
+        let str = GMConfig.getValue("Additional Stats")?
             '<div class="subsection">'+
             '<div class="title">Additional</div>'+
-            '<div class="listing"><b>Missed golden cookies: </b>'+ Beautify(Game.missedGoldenClicks) +'</div>'+
+            '<div class="listing"><b>Amount of Clicks (this session): </b>'+ Beautify(Game.clicksThisSession) +'</div>'+
+            '<div class="listing"><b>Missed Golden Cookies: </b>'+ Beautify(Game.missedGoldenClicks) +'</div>'+
             '<div class="listing"><b>Seed: </b>' + Game.seed +'</div>'+
             '</div>'
             :'';
@@ -261,7 +316,7 @@ GameManager.menus = {
     },
 
     buildInfo: () => {
-        GameManager.changelog = document.createElement('div');
+        GM.changelog = document.createElement('div');
 
         let infoContainer = document.createElement("div");
         infoContainer.classList.add("subsection");
@@ -272,7 +327,7 @@ GameManager.menus = {
         'In development since December 2021. <br><br>' +
         'Made by x8c8r <br>'+
         '<a href="https://steamcommunity.com/id/x8c8r" target="_blank">Steam</a>, <a href="https://github.com/x8c8r" target="_blank">GitHub</a> <br><br>'+
-        'Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/x8c8r/cc-gamemanager/issues">GitHub Repo</a>. </div> <br>'
+        'Report any bugs and make suggestions either on the workshop page or on the <a href="https://github.com/x8c8r/cc-GM/issues">GitHub Repo</a>. </div> <br>'
         
         infoContainer.appendChild(modInfo);
 
@@ -282,10 +337,16 @@ GameManager.menus = {
         let updateLog = 
         '<div class="subsection"><div class="title">Game Manager Version history</div>'+
 
+        '<div class="subsection update">'+
+        '<div class="title">10/02/2023 - patch 6</div>'+
+        '<div class="listing">&bull; Revamped the config system. It now takes much less space in the save file!</div>'+
+        '<div class="listing">&bull; Added 2 new "Game Progress" features. These are supposed to help you control the game\'s progress while not being directly cheats.</div>'+
+        '</div>'+
+
         '<div class="subsection update small">'+
         '<div class="title">18/01/2023 - patch 5</div>'+
         '<div class="listing">&bull; Added a feature to lock any achievement</div>'+
-        (!GameManager.steam?'<div class="listing">&bull; The menu now correctly deals with Steam-only features on web.</div>':'')+
+        (!GM.steam?'<div class="listing">&bull; The menu now correctly deals with Steam-only features on web.</div>':'')+
         '</div>'+
 
         '<div class="subsection update">' +
@@ -323,24 +384,130 @@ GameManager.menus = {
         changelog.innerHTML = updateLog;
 
         infoContainer.appendChild(changelog);
-        GameManager.changelog.appendChild(infoContainer);
+        GM.changelog.appendChild(infoContainer);
         
     },
 
     infoMenu: () => {
-        return GameManager.changelog;
+        return GM.changelog;
     }
 
 }
 
 // Features
-GameManager.features = {
+GM.features = {
+    // Conveniences
+    restart: function () {
+        GM.wrappers.notify(`Restarting the game!`, ``, [0, 0, GM.icon], true, false); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
+        Game.toSave = true;
+        Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
+    },
+
+    sleep: function () {
+        GM.wrappers.notify(`Timing out the game!`, '', [0, 0, GM.icon], true);
+        Game.toSave = true;
+        Game.Timeout();
+    },
+
+    unlockSteamAchievs: function () {
+        if (!Steam.allowSteamAchievs) {
+            GM.wrappers.notify(`Enabling Steam achievements!`, '', [0, 0, GM.icon], true);
+            Steam.allowSteamAchievs = true;
+        }
+        else {
+            GM.wrappers.notify(`Steam achievements were already enabled!`, '', [0, 0, GM.icon], true);
+        }
+    },
+
+    updateMenu: function (loop = false) {
+        GM.wrappers.notify(`Forcing the game to update menus!`, '', [0, 0, GM.icon], true);
+        Game.UpdateMenu();
+    },
+
+    openSesame: function () {
+        GM.wrappers.notify(`Opening the sesame!`, 'Open Sesame!', [0, 0, GM.icon], true);
+        Game.OpenSesame();
+    },
+
+    // Hacks
+    cheatedCookiesUnlock: function () {
+        if (!Game.Achievements['Cheated cookies taste awful'].won) {
+            GM.wrappers.notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GM.icon], true);
+            Game.Win('Cheated cookies taste awful');
+        }
+        else {
+            GM.wrappers.notify(`"Cheated cookies taste awful" is already unlocked!`, '', [0, 0, GM.icon], true);
+        }
+    },
+
+    thirdParty: function () {
+        if (!Game.Achievements['Third-party'].won) {
+            GM.wrappers.notify(`Unlocking "Third-party"!`, '', [0, 0, GM.icon], true);
+            Game.Win('Third-party')
+        }
+        else {
+            GM.wrappers.notify(`"Third-party" is already unlocked!`, '', [0, 0, GM.icon], true);
+        }
+    },
+
+    toggleAchiev: function (mode) {
+        const uA = function (mode) {
+            let ac = l('achName').value;
+
+            if (!ac.length > 0) return;
+
+            if (!Game.Achievements[ac]) {
+                GM.wrappers.notify('Achievement "'+ac+'" does not exist!', '', [0, 0, GM.icon], true);
+                return;
+            }
+
+            if (mode) {
+                if (Game.Achievements[ac].won) {
+                    GM.wrappers.notify('Achievement "'+ac+'" was already unlocked!', '', [0, 0, GM.icon], true);
+                    return;
+                }
+
+                GM.wrappers.notify('Unlocking achievement "'+ac+'"!', '', [0, 0, GM.icon], true);
+                Game.Win(ac);
+            }
+            else {
+                if (!Game.Achievements[ac].won) {
+                    GM.wrappers.notify('Achievement "'+ac+'" was already locked!', '', [0, 0, GM.icon], true);                    
+                }
+                GM.wrappers.notify('Locking achievement "'+ac+'"!', '', [0, 0, GM.icon], true);
+                Game.Achievements[ac].won = 0;
+            }
+        }
+        Game.Prompt('<h3>'+(mode?'Unlock':'Lock')+' Achievement</h3>'+
+        '<div class="block">Enter name of the achievement (Case Sensitive):<br><br>'+
+		'<input type="text" class="option" id="achName"></input></div>',
+        [[mode?'Unlock':'Lock', GM.code.functionToString(uA, [mode])], 'Cancel']);
+        l('achName').focus();
+    },
+
+    changeSeed: function () {
+        const cS = () => {
+            let seed = l('seedInput').value;
+
+            if (!seed.length > 0) return;
+
+            GM.wrappers.notify('Changing seed to: ' + seed, '', [0, 0, GM.icon], true);
+            Game.seed = seed;
+        };
+
+        Game.Prompt('<h3>Change seed</h3><div class="block">A "seed" is a unique combination of letters that determines random events during your playthrough, it doesn\'t get reset on ascensions</div>'+
+        '<div class="block">Enter new seed:<br><br>'+
+        '<input type="text" class="option" id="seedInput"></input>'+
+        '</div>', [["Change", GM.code.functionToString(cS)], "Cancel"]);
+    },
+
+    // Fun/Cosmetic
     webify: function (update = false) {
         if (!update) {
-            GameManager.wrappers.notify(`Toggling the Web features!`, '', [0, 0, GameManager.icon], true);
-            GMConfig.values.webify = !GMConfig.values.webify;
+            GM.wrappers.notify(`Toggling the Web features!`, '', [0, 0, GM.icon], true);
+            GMConfig.setValue("Webify" ,!GMConfig.getValue("Webify"));
         }
-        if (GMConfig.values.webify) {
+        if (GMConfig.getValue("Webify")) {
             Game.wrapper.classList.remove('offWeb');
             Game.wrapper.classList.add('onWeb');
         }
@@ -352,172 +519,99 @@ GameManager.features = {
     },
 
     toggleAdditionalStats: function () {
-        GMConfig.values.additionalStats = !GMConfig.values.additionalStats;
-        GameManager.wrappers.notify(`Toggling additional stats!`, '', [0, 0, GameManager.icon], true);
+        GMConfig.setValue("Additional Stats", !GMConfig.getValue("Additional Stats"));
+        GM.wrappers.notify(`Toggling additional stats!`, '', [0, 0, GM.icon], true);
         Game.UpdateMenu();
     },
 
+    // Game Progress
+    syncAchievs: function() {
+        GM.wrappers.notify(`Syncing achievements!`, '', [0, 0, GM.icon], true);
+        for (let a in Game.Achievements) {
+            if (Game.Achievements[a].won) {
+                let ach = Game.Achievements[a];
+                if (ach.vanilla) App.gotAchiev(ach.id);
+            }
+        }
+    },
+
+    finishResearch: function() {
+        if (Game.researchT >= 0) {
+            GM.wrappers.notify('Finishing the research!', '', [0,0, GM.icon], true);
+            Game.researchT = 0;
+        }
+        else {
+            GM.wrappers.notify('No research is being conducted!', '', [0,0, GM.icon], true);
+        }
+    },
+
+    // Mod Options
     toggleNotis: function () {
-        GMConfig.values.showNotis = !GMConfig.values.showNotis;
-        Game.Notify('Notifications: '+(GMConfig.values.showNotis?"On":"Off"), '', [0, 0, GameManager.icon], true); // I need to directly notify
+        GMConfig.setValue("Show Notis", !GMConfig.getValue("Show Notis"));
+        Game.Notify('Notifications: '+(GMConfig.getValue("Show Notis")?"On":"Off"), '', [0, 0, GM.icon], true); // I need to directly notify
         Game.UpdateMenu();
-    },
-
-    restart: function () {
-        GameManager.wrappers.notify(`Restarting the game!`, ``, [0, 0, GameManager.icon], true, false); //For people interested: Game.Notify(title,desc,pic,quick,noLog) quick = Notification disappears automatically after around a second. noLog = Doesn't display in console
-        Game.toSave = true;
-        Game.toReload = true; //Turns out CC actually saves the game before reloading, it was an oopsie on my side. But now it's fixed
-    },
-
-    sleep: function () {
-        GameManager.wrappers.notify(`Timing out the game!`, '', [0, 0, GameManager.icon], true);
-        Game.toSave = true;
-        Game.Timeout();
-    },
-
-    cheatedCookiesUnlock: function () {
-        if (!Game.Achievements['Cheated cookies taste awful'].won) {
-            GameManager.wrappers.notify(`Unlocking "Cheated cookies taste awful"!`, '', [0, 0, GameManager.icon], true);
-            Game.Win('Cheated cookies taste awful');
-        }
-        else {
-            GameManager.wrappers.notify(`"Cheated cookies taste awful" is already unlocked!`, '', [0, 0, GameManager.icon], true);
-        }
-    },
-
-    thirdParty: function () {
-        if (!Game.Achievements['Third-party'].won) {
-            GameManager.wrappers.notify(`Unlocking "Third-party"!`, '', [0, 0, GameManager.icon], true);
-            Game.Win('Third-party')
-        }
-        else {
-            GameManager.wrappers.notify(`"Third-party" is already unlocked!`, '', [0, 0, GameManager.icon], true);
-        }
-    },
-
-    unlockSteamAchievs: function () {
-        if (!Steam.allowSteamAchievs) {
-            GameManager.wrappers.notify(`Enabling Steam achievements!`, '', [0, 0, GameManager.icon], true);
-            Steam.allowSteamAchievs = true;
-        }
-        else {
-            GameManager.wrappers.notify(`Steam achievements were already enabled!`, '', [0, 0, GameManager.icon], true);
-        }
-    },
-
-    openSesame: function () {
-        GameManager.wrappers.notify(`Opening the sesame!`, 'Open Sesame!', [0, 0, GameManager.icon], true);
-        Game.OpenSesame();
-    },
-
-    updateMenu: function (loop = false) {
-        GameManager.wrappers.notify(`Forcing the game to update menus!`, '', [0, 0, GameManager.icon], true);
-        Game.UpdateMenu();
-    },
-
-    toggleAchiev: function (mode) {
-        const uA = function (mode) {
-            let ac = l('achName').value;
-
-            if (!ac.length > 0) return;
-
-            if (!Game.Achievements[ac]) {
-                GameManager.wrappers.notify('Achievement "'+ac+'" does not exist!', '', [0, 0, GameManager.icon], true);
-                return;
-            }
-
-            if (mode) {
-                if (Game.Achievements[ac].won) {
-                    GameManager.wrappers.notify('Achievement "'+ac+'" was already unlocked!', '', [0, 0, GameManager.icon], true);
-                    return;
-                }
-
-                GameManager.wrappers.notify('Unlocking achievement "'+ac+'"!', '', [0, 0, GameManager.icon], true);
-                Game.Win(ac);
-            }
-            else {
-                if (!Game.Achievements[ac].won) {
-                    GameManager.wrappers.notify('Achievement "'+ac+'" was already locked!', '', [0, 0, GameManager.icon], true);                    
-                }
-                GameManager.wrappers.notify('Locking achievement "'+ac+'"!', '', [0, 0, GameManager.icon], true);
-                Game.Achievements[ac].won = 0;
-            }
-        }
-        Game.Prompt('<h3>'+(mode?'Unlock':'Lock')+' Achievement</h3>'+
-        '<div class="block">Enter name of the achievement (Case Sensitive):<br><br>'+
-		'<input type="text" class="option" id="achName"></input></div>',
-        [[mode?'Unlock':'Lock', GameManager.code.functionToString(uA, [mode])], 'Cancel']);
-        l('achName').focus();
-    },
-
-    changeSeed: function () {
-        const cS = () => {
-            let seed = l('seedInput').value;
-
-            if (!seed.length > 0) return;
-
-            GameManager.wrappers.notify('Changing seed to: ' + seed, '', [0, 0, GameManager.icon], true);
-            Game.seed = seed;
-        };
-
-        Game.Prompt('<h3>Change seed</h3><div class="block">A "seed" is a unique combination of letters that determines random events during your playthrough, it doesn\'t get reset on ascensions</div>'+
-        '<div class="block">Enter new seed:<br><br>'+
-        '<input type="text" class="option" id="seedInput"></input>'+
-        '</div>', [["Change", GameManager.code.functionToString(cS)], "Cancel"]);
     },
 
     editConf: function () {
         const confSave = () => {
-            GMConfig.values = JSON.parse(confEdit.value);
-            GMConfig.fill();
-            confEdit.value = JSON.stringify(GMConfig.values)
+            let conf = JSON.parse(confEdit.value);
+            GMConfig.loadConfig(conf);
+            confEdit.value = JSON.stringify(GMConfig.getConfig())
         }
 
-        const confInfo = `<h2>Config values:</h2><div class="block" style="overflowY:scroll;width:90%;height:70px">
-            webify - Whether "Webify" is turned on or off <br>
-            showNotis - Whether to show notifications on actions <br>
-        </div>`;
+        let str = "";
+        for (let i in GMConfig.entries) {
+            let entry = GMConfig.entries[i];
+            str += entry.name + ' - ' + entry.desc + '<br><br>';
+        }
+
+        const confInfo = '<h2>Config values:</h2><div class="block" style="overflow-y:scroll;width:90%;height:70px">'+
+        str +
+        '</div>';
 
         let confReset = () => GMConfig.reset();
-        Game.Prompt(`<h3>Config</h3>)<input type="text" class="option" id="confEdit" style="height:50px;width:90%;"value=${ JSON.stringify(GMConfig.values)}></input> <br><br> ${confInfo}<br> </div>`, [['Save', GameManager.code.functionToString(confSave)], ['Reset to default', GameManager.code.functionToString(confReset)], 'Cancel']);
+        Game.Prompt(`<h3>Config Editor</h3>)<input type="text" class="option" id="confEdit" style="height:50px;width:90%;" spellcheck="false"></input> <br><br> ${confInfo}<br> </div>`, [['Save', GM.code.functionToString(confSave)], ['Reset to default', GM.code.functionToString(confReset)], 'Cancel']);
+        confEdit.value = JSON.stringify(GMConfig.getConfig());
         confEdit.focus();
     }
 
 }
 
 // ACTUAL MOD
-GameManager.init = function () {
-    let mod = Game.mods[GameManager.id];
-    GameManager.icon = GameManager.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
-    GameManager.menus.buildInfo();
-    Game.Notify(`Loaded Game Manager!`, `Version ${GameManager.version}`, [0, 0, GameManager.icon], true);
+GM.init = function () {
+    let mod = Game.mods[GM.id];
+    GM.icon = GM.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-GM/icon.png';
+
+    GM.menus.buildInfo();
 
     // Inject menus in
     let menuInject = () => {
         if (Game.onMenu == 'prefs') {
-            GameManager.menu.appendOptionsMenu(GameManager.name, GameManager.menus.optionsMenu());
+            GM.menu.appendOptionsMenu(GM.name, GM.menus.optionsMenu(), true);
         }
         if (Game.onMenu == 'stats') {
-            GameManager.menu.appendGenStats(GameManager.menus.additionalStats());
+            GM.menu.appendGenStats(GM.menus.additionalStats());
         }
         if (Game.onMenu == 'log') {
-            GameManager.menu.prependInfoMenu(GameManager.name, GameManager.menus.infoMenu().innerHTML); // Cheap fix, still have yet to understand why no work
+            GM.menu.prependInfoMenu(GM.name, GM.menus.infoMenu().innerHTML); // Cheap fix, still have yet to understand why no work
         }
     };
 
-    GameManager.code.injectFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", GameManager.code.functionToString(menuInject), 1);
+    GM.code.injectFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", GM.code.functionToString(menuInject), 1);
+
+    Game.Notify(`Loaded Game Manager!`, `Version ${GM.version}`, [0, 0, GM.icon], true);
 }
 
-GameManager.save = function () {
-    let save = JSON.stringify(GMConfig.values);
+GM.save = function () {
+    let save = JSON.stringify(GMConfig.getConfig());
     return save;
 }
 
-GameManager.load = function (str) {
+GM.load = function (str) {
     if (!str) return;
-    GMConfig.values = JSON.parse(str);
-    GMConfig.fill();
+    let config = JSON.parse(str);
+    GMConfig.loadConfig(config);
     GMConfig.update();
 }
 
-Game.registerMod('x8c8r.gameManager', GameManager);
+Game.registerMod('x8c8r.gameManager', GM);
