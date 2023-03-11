@@ -56,8 +56,8 @@ new GMConfig.entry("Additional Stats", "Whether additional statistics should be 
 new GMConfig.entry("Show Notis", "Whether the mod should display it's notifications", false);
 new GMConfig.entry("Webify", "Whether web things should be on", false);
 
-GMConfig.update = () => {
-    GM.features.webify(true);
+GMConfig.update = function() {
+    GM.features.webify(GMConfig.getValue("Webify"));
 }
 
 let GM = {
@@ -276,13 +276,13 @@ GM.menus = {
         GM.menuElements.Button("GM.features.thirdParty();", "Join Third-Party")+'<label>Unlocks "Third-party" achievement</label>'+'<br>'+
         GM.menuElements.Button("GM.features.toggleAchiev(true);", "Unlock Achievement")+'<label>UNLOCK any achievement (as long as you type it right)</label>'+'<br>'+
         GM.menuElements.Button("GM.features.toggleAchiev(false);", "Lock Achievement")+'<label>LOCK ANY achievement (as long as you type it right)</label>'+'<br>'+
-        GM.menuElements.Button("GM.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
         
         '<br>'+'<div class="line"></div>'+
 
         '<div class="subsection">Game Progress</div>'+
         (GM.steam ? (GM.menuElements.Button("GM.features.syncAchievs();", "Sync Achievements")+'<label>Makes Steam regrant you achievements</label>'+'<br>'):'')+
         GM.menuElements.Button("GM.features.finishResearch();", "Finish Research")+'<label>Finishes research if there is an ongoing one</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
 
         '<br>'+'<div class="line"></div>'+
         
@@ -580,7 +580,7 @@ GM.features = {
 // ACTUAL MOD
 GM.init = function () {
     let mod = Game.mods[GM.id];
-    GM.icon = GM.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-GM/icon.png';
+    GM.icon = GM.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
 
     GM.menus.buildInfo();
 
