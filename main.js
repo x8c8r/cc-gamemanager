@@ -267,9 +267,12 @@ GM.menus = {
         (GM.steam ? (GM.menuElements.Button("GM.features.unlockSteamAchievs();", "Unlock Steam Achievements")+'<label>Allows Steam achievements to be unlocked</label>'+'<br>'):'')+
         GM.menuElements.Button("GM.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
         GM.menuElements.Button("GM.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
-        GM.menuElements.Button("GM.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'+
+        GM.menuElements.Button("GM.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'
+        if (!GM.steam && Game.beta) {
+            str+=GM.menuElements.Button("GM.features.ungiftOut();", "Ungift out")+'<label>Removes the "Gifted out" debuff</label>'+'<br>'
+        }
 
-        '<br>'+'<div class="line"></div>'+
+        str+='<br>'+'<div class="line"></div>'+
 
         '<div class="subsection">Hacks</div>'+
         GM.menuElements.Button("GM.features.cheatedCookiesUnlock();", "Cheat (0) cookies")+'<label>Unlocks "Cheated cookies taste awful" achievement</label>'+'<br>'+
@@ -422,6 +425,11 @@ GM.features = {
     updateMenu: function (loop = false) {
         GM.wrappers.notify(`Forcing the game to update menus!`, '', [0, 0, GM.icon], true);
         Game.UpdateMenu();
+    },
+
+    ungiftOut: function() {
+        Game.killBuff('Gifted out');
+        GM.wrappers.notify(`Removing "Gifted out"`, '', [0, 0, GM.icon], true);
     },
 
     openSesame: function () {
