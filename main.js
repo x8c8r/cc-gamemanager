@@ -57,7 +57,7 @@ new GMConfig.entry("Show Notis", "Whether the mod should display it's notificati
 new GMConfig.entry("Webify", "Whether web things should be on", false);
 
 GMConfig.update = function() {
-    GM.features.webify(GMConfig.getValue("Webify"));
+    GM.features.webify(true);
 }
 
 let GM = {
