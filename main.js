@@ -268,7 +268,7 @@ GM.menus = {
         GM.menuElements.Button("GM.features.openSesame();", "Open Sesame")+'<label>Opens Sesame</label>'+'<br>'+
         GM.menuElements.Button("GM.features.sleep();", "Sleep")+'<label>Puts your game in sleep mode</label>'+'<br>'+
         GM.menuElements.Button("GM.features.updateMenu();", "Update Menus")+'<label>Forces the game to update menus</label>'+'<br>'
-        if (!GM.steam && Game.beta) {
+        if (Game.beta) {
             str+=GM.menuElements.Button("GM.features.ungiftOut();", "Ungift out")+'<label>Removes the "Gifted out" debuff</label>'+'<br>'
         }
 
