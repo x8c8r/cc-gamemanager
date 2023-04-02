@@ -286,6 +286,7 @@ GM.menus = {
         (GM.steam ? (GM.menuElements.Button("GM.features.syncAchievs();", "Sync Achievements")+'<label>Makes Steam regrant you achievements</label>'+'<br>'):'')+
         GM.menuElements.Button("GM.features.finishResearch();", "Finish Research")+'<label>Finishes research if there is an ongoing one</label>'+'<br>'+
         GM.menuElements.Button("GM.features.changeSeed();", "Change Seed")+'<label>Changes your seed (more info in the prompt)</label>'+'<br>'+
+		GM.menuElements.Button("GM.features.simulate();", "Simulate")+'<label>Simulate hours of production</label>'+'<br>'+
 
         '<br>'+'<div class="line"></div>'+
         
@@ -339,6 +340,13 @@ GM.menus = {
 
         let updateLog = 
         '<div class="subsection"><div class="title">Game Manager Version history</div>'+
+		
+		'<div class="subsection update">'+
+		'<div class="title">02/04/2023 - patch 7</div>'+
+		'<div class="listing">&bull; Added a "Simulate" button. It will simulate however many hours of cookie production you will specify!</div>'+
+		'<div class="listing">&bull; Added a "Ungift out" button. Only shows up on beta. Will remove the "Gifted out" debuff after sending/receiving a gift.</div>'+
+		'<div class="listing">&bull; Changed info in the change seed feature.</div>'+
+		'</div>'+
 
         '<div class="subsection update">'+
         '<div class="title">10/02/2023 - patch 6</div>'+
@@ -503,7 +511,9 @@ GM.features = {
             Game.seed = seed;
         };
 
-        Game.Prompt('<h3>Change seed</h3><div class="block">A "seed" is a unique combination of letters that determines random events during your playthrough, it doesn\'t get reset on ascensions</div>'+
+        Game.Prompt(
+		'<h3>Change seed</h3><div class="block">A "seed" is a unique combination of letters that determines random events during your playthrough. It gets reset after every ascension.</div>'+
+		'<div class="block">Your current seed is: '+Game.seed+'</div>'+
         '<div class="block">Enter new seed:<br><br>'+
         '<input type="text" class="option" id="seedInput"></input>'+
         '</div>', [["Change", GM.code.functionToString(cS)], "Cancel"]);
@@ -552,6 +562,16 @@ GM.features = {
             GM.wrappers.notify('No research is being conducted!', '', [0,0, GM.icon], true);
         }
     },
+	
+	simulate: function() {
+		const sim = () => {
+			let hours = simInput.value;
+			let amount = Game.cookiesPs*60*60*hours;
+			Game.Earn(amount);
+			GM.wrappers.notify('Simulated ' + hours + ' hours worth of CpS', '', [0,0, GM.icon], true);
+		}
+		Game.Prompt(`<h3>Simulation</h3> <input type="text" class="option" id="simInput" spellcheck="false"</input>`, [['Simulate', GM.code.functionToString(sim)], 'Cancel']);
+	},
 
     // Mod Options
     toggleNotis: function () {
@@ -578,7 +598,7 @@ GM.features = {
         '</div>';
 
         let confReset = () => GMConfig.reset();
-        Game.Prompt(`<h3>Config Editor</h3>)<input type="text" class="option" id="confEdit" style="height:50px;width:90%;" spellcheck="false"></input> <br><br> ${confInfo}<br> </div>`, [['Save', GM.code.functionToString(confSave)], ['Reset to default', GM.code.functionToString(confReset)], 'Cancel']);
+        Game.Prompt(`<h3>Config Editor</h3><input type="text" class="option" id="confEdit" style="height:50px;width:90%;" spellcheck="false"></input> <br><br> ${confInfo}<br> </div>`, [['Save', GM.code.functionToString(confSave)], ['Reset to default', GM.code.functionToString(confReset)], 'Cancel']);
         confEdit.value = JSON.stringify(GMConfig.getConfig());
         confEdit.focus();
     }
