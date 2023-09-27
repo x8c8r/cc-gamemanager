@@ -350,7 +350,13 @@ GM.menus = {
 
         let updateLog = 
         `<div class="subsection"><div class="title">Game Manager Version history</div>
-            
+
+        <div class="subsection update small">
+        <div class="title">27/09/2023 - patch 9</div>
+        <div class="listing">&bull; Webification is initialised depending on if you play on Steam or Web</div>
+        <div class="listing">&bull; Language is now loaded before the mod preventing unlocalised launch notification</div>
+        </div>
+                
         <div class="subsection update">
         <div class="title">21/09/2023 - Language Update</div>
         <div class="listing"><i style="font-style:italic;">Do you remember... The 21st night of September?</i></div> 
