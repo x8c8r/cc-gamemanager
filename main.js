@@ -59,7 +59,7 @@ GMConfig.update = function() {
 let GM = {
     name: 'Game Manager',
     id: 'x8c8r.gameManager',
-    version: 2.120,
+    version: 2.121,
     gameVersion: Game.gameVersion,
     steam: typeof (Steam) !== 'undefined',
 }
@@ -606,7 +606,7 @@ GM.features = {
     // Mod Options
     toggleNotis: function () {
         GMConfig.setValue("Show Notis", !GMConfig.getValue("Show Notis"));
-        Game.Notify(loc('Notifications: %1!', [(GMConfig.getValue("Show Notis")?"On":"Off")]), '', [0, 0, GM.icon], true); // I need to directly notify
+        Game.Notify(loc('Notifications: %1!', (GMConfig.getValue("Show Notis")?"On":"Off")), '', [0, 0, GM.icon], true); // I need to directly notify
         Game.UpdateMenu();
     },
 
@@ -634,12 +634,14 @@ GM.features = {
 
 // ACTUAL MOD
 GM.init = function () {
+    GM.initLoc();
+
     let mod = Game.mods[GM.id];
     GM.icon = GM.steam ? mod.dir + '/icon.png' : 'https://x8c8r.github.io/cc-gamemanager/icon.png';
 
     new GMConfig.entry("Additional Stats", loc("Additional Stats_config"), true);
     new GMConfig.entry("Show Notis", loc("Show Notis_config"), false);
-    new GMConfig.entry("Webify", loc("Webify_config"), false);
+    new GMConfig.entry("Webify", loc("Webify_config"), (GM.steam ? false : true));
 
     GM.menus.buildInfo();
 
@@ -658,7 +660,7 @@ GM.init = function () {
 
     GM.code.injectFunctionCode("Game.UpdateMenu", "l('menu').innerHTML=str;", GM.code.functionToString(menuInject), 1);
 
-    Game.Notify(loc('Loaded Game Manager!'), loc('Version %1', [GM.version]), [0, 0, GM.icon], true);
+    Game.Notify(loc('Loaded Game Manager!'), loc('Version %1', GM.version), [0, 0, GM.icon], true);
 }
 
 GM.save = function () {
@@ -675,300 +677,302 @@ GM.load = function (str) {
 
 Game.registerMod('x8c8r.gameManager', GM);
 
+GM.initLoc = function() {
 // LANGUAGE
-ModLanguage("*",
-    {
-        // SECTIONS
-        'Conveniences': "Conveniences",
-        "Hacks": "Hacks",
-        "Game Progress": "Game Progress",
-        "Fun/Cosmetic": "Fun/Cosmetic",
-        "Mod Options": "Mod Options",
+    ModLanguage("*",
+        {
+            // SECTIONS
+            'Conveniences': "Conveniences",
+            "Hacks": "Hacks",
+            "Game Progress": "Game Progress",
+            "Fun/Cosmetic": "Fun/Cosmetic",
+            "Mod Options": "Mod Options",
 
-        // CONVENIENCES
-        'Reload': "Reload",
-        'Reload_tip': "Reloads the game",
+            // CONVENIENCES
+            'Reload': "Reload",
+            'Reload_tip': "Reloads the game",
 
-        'Unlock Steam Achievements': "Unlock Steam Achievements",
-        'Unlock Steam Achievements_tip': "Allows Steam achievements to be unlocked",
+            'Unlock Steam Achievements': "Unlock Steam Achievements",
+            'Unlock Steam Achievements_tip': "Allows Steam achievements to be unlocked",
 
-        'Open Sesame': "Open Sesame",
-        'Open Sesame_tip': "Opens Sesame",
+            'Open Sesame': "Open Sesame",
+            'Open Sesame_tip': "Opens Sesame",
 
-        'Sleep': "Sleep",
-        'Sleep_tip': "Puts your game to sleep mode",
+            'Sleep': "Sleep",
+            'Sleep_tip': "Puts your game to sleep mode",
 
-        'Update Menus': "Update Menus",
-        'Update Menus_tip': "Forces the game to update menus",
+            'Update Menus': "Update Menus",
+            'Update Menus_tip': "Forces the game to update menus",
 
-        'Ungift out': "Ungift out",
-        'Ungift out_tip': "Removes the 'Gifted out' debuff",
+            'Ungift out': "Ungift out",
+            'Ungift out_tip': "Removes the 'Gifted out' debuff",
 
-        // HACKS
-        'Cheat (zero) cookies': "Cheat (zero) cookies",
-        'Cheat (zero) cookies_tip': "Unlocks 'Cheated cookies taste awful' achievement",
+            // HACKS
+            'Cheat (zero) cookies': "Cheat (zero) cookies",
+            'Cheat (zero) cookies_tip': "Unlocks 'Cheated cookies taste awful' achievement",
 
-        'Join Third-Party': "Join Third-Party",
-        'Join Third-Party_tip': "Unlocks 'Third-party' achievement",
+            'Join Third-Party': "Join Third-Party",
+            'Join Third-Party_tip': "Unlocks 'Third-party' achievement",
 
-        'Unlock Achievement': "Unlock Achievement",
-        'Unlock Achievement_tip': "Unlocks any achievement",
+            'Unlock Achievement': "Unlock Achievement",
+            'Unlock Achievement_tip': "Unlocks any achievement",
 
-        'Lock Achievement': "Lock Achievement",
-        'Lock Achievement_tip': "Locks any achievement",
+            'Lock Achievement': "Lock Achievement",
+            'Lock Achievement_tip': "Locks any achievement",
 
-        // GAME PROGRESS
-        'Sync Achievements': "Sync Achievements",
-        'Sync Achievements_tip': "Makes Steam regrant your achievments",
+            // GAME PROGRESS
+            'Sync Achievements': "Sync Achievements",
+            'Sync Achievements_tip': "Makes Steam regrant your achievments",
 
-        'Finish Research': "Finish Research",
-        'Finish Research_tip': "Finish an ongoing research",
+            'Finish Research': "Finish Research",
+            'Finish Research_tip': "Finish an ongoing research",
 
-        'Change Seed': "Change Seed",
-        'Change Seed_tip': "Changes seed of your run (more info in the prompt)",
+            'Change Seed': "Change Seed",
+            'Change Seed_tip': "Changes seed of your run (more info in the prompt)",
 
-        'Simulate Cookies': "Simulate Cookies",
-        'Simulate Cookies_tip': "Simulates production of cookies (in hours)",
+            'Simulate Cookies': "Simulate Cookies",
+            'Simulate Cookies_tip': "Simulates production of cookies (in hours)",
 
-        // FUN/COSMETIC
-        'Webification': "Webification",
-        'Webification_tip': "Toggle the web version stuff",
+            // FUN/COSMETIC
+            'Webification': "Webification",
+            'Webification_tip': "Toggle the web version stuff",
 
-        'Additional Statistics': "Additional Statistics",
-        'Additional Statistics_tip': "Toggles additional stats in the info menu",
+            'Additional Statistics': "Additional Statistics",
+            'Additional Statistics_tip': "Toggles additional stats in the info menu",
 
-        // MOD OPTIONS
-        'Show Notifications': "Show Notifications",
-        'Show Notifications_tip': "Toggles notifications on the bottom of your screen when using mod features",
+            // MOD OPTIONS
+            'Show Notifications': "Show Notifications",
+            'Show Notifications_tip': "Toggles notifications on the bottom of your screen when using mod features",
 
-        'Edit Config': "Edit Config",
-        'Edit Config_tip': "Directly edit Game Manager's config",
+            'Edit Config': "Edit Config",
+            'Edit Config_tip': "Directly edit Game Manager's config",
 
-        // ADDITIONAL STATS
-        'Additional_section': "Additional",
-        'Session Clicks': "Amount of Clicks (this session)",
-        'Missed Golden Cookies': "Missed Golden Cookies",
-        'Seed': "Seed",
+            // ADDITIONAL STATS
+            'Additional_section': "Additional",
+            'Session Clicks': "Amount of Clicks (this session)",
+            'Missed Golden Cookies': "Missed Golden Cookies",
+            'Seed': "Seed",
 
-        // CONFIG VALUES
-        'Additional Stats_config': "Whether additional statistics should be on",
-        'Show Notis_config': "Whether the mod should display notifications",
-        'Webify_config': "Whether web things should be on",
+            // CONFIG VALUES
+            'Additional Stats_config': "Whether additional statistics should be on",
+            'Show Notis_config': "Whether the mod should display notifications",
+            'Webify_config': "Whether web things should be on",
 
-        // NOTIFICATIONS
-        'Restarting the game!': "Restarting the game!",
+            // NOTIFICATIONS
+            'Restarting the game!': "Restarting the game!",
 
-        'Timing out the game!': "Timing out the game!",
+            'Timing out the game!': "Timing out the game!",
 
-        'Enabling Steam achievements!': "Enabling Steam achievements!",
-        'Steam achievements were already enabled.': "Steam achievements were already enabled.",
-        'Forcing the game to update menus!': "Forcing the game to update menus!",
+            'Enabling Steam achievements!': "Enabling Steam achievements!",
+            'Steam achievements were already enabled.': "Steam achievements were already enabled.",
+            'Forcing the game to update menus!': "Forcing the game to update menus!",
 
-        'Removing "Gifted out"!': "Removing \"Gifted out\"!",
+            'Removing "Gifted out"!': "Removing \"Gifted out\"!",
 
-        'Opening the sesame!': "Opening the sesame!",
-        'Open Sesame!': "Open Sesame!",
+            'Opening the sesame!': "Opening the sesame!",
+            'Open Sesame!': "Open Sesame!",
 
-        'Unlocking "Cheated cookies taste awful"!': "Unlocking \"Cheated cookies taste awful\"!",
-        '"Cheated cookies taste awful" is already unlocked.': "\"Cheated cookies taste awful\" is already unlocked.",
+            'Unlocking "Cheated cookies taste awful"!': "Unlocking \"Cheated cookies taste awful\"!",
+            '"Cheated cookies taste awful" is already unlocked.': "\"Cheated cookies taste awful\" is already unlocked.",
 
-        'Unlocking "Third-party"!': "Unlocking \"Third-party\"!",
-        '"Third-party" is already unlocked.': "\"Third-party\" is already unlocked.",
+            'Unlocking "Third-party"!': "Unlocking \"Third-party\"!",
+            '"Third-party" is already unlocked.': "\"Third-party\" is already unlocked.",
 
-        'Enter an achievement name!': "Enter an achievement name!",
-        'Achievement %1 does not exist.': "Achievement %1 does not exist.",
-        'Achievement %1 was already unlocked.': "Achievement %1 was already unlocked.",
-        'Unlocking achievement %1!': "Unlocking achievement %1!",
-        'Achievement %1 was already locked.': "Achievement %1 was already locked.",
-        'Locking achievement %1!': "Locking achievement %1!",
+            'Enter an achievement name!': "Enter an achievement name!",
+            'Achievement %1 does not exist.': "Achievement %1 does not exist.",
+            'Achievement %1 was already unlocked.': "Achievement %1 was already unlocked.",
+            'Unlocking achievement %1!': "Unlocking achievement %1!",
+            'Achievement %1 was already locked.': "Achievement %1 was already locked.",
+            'Locking achievement %1!': "Locking achievement %1!",
 
-        'Changing seed to: %1': "Changing seed to: %1",
+            'Changing seed to: %1': "Changing seed to: %1",
 
-        'Toggling the Web features!': "Toggling the Web features!",
+            'Toggling the Web features!': "Toggling the Web features!",
 
-        'Toggling additional stats!': "Toggling additional stats!",
+            'Toggling additional stats!': "Toggling additional stats!",
 
-        'Syncing achievements!': "Syncing achievements!",
+            'Syncing achievements!': "Syncing achievements!",
 
-        'Finishing the research!': "Finishing the research!",
-        'No research is being conducted.': "No research is being conducted.",
-        'Simulated %1 hours worth of CpS!': "Simulated %1 hours worth of CpS!",
+            'Finishing the research!': "Finishing the research!",
+            'No research is being conducted.': "No research is being conducted.",
+            'Simulated %1 hours worth of CpS!': "Simulated %1 hours worth of CpS!",
 
-        'Notifications: %1!': "Notifications: %1!",
+            'Notifications: %1!': "Notifications: %1!",
 
-        'Loaded Game Manager!': "Loaded Game Manager!",
-        'Version %1': "Version %1",
+            'Loaded Game Manager!': "Loaded Game Manager!",
+            'Version %1': "Version %1",
 
-        // POPUPS
-        'Reset to default': "Reset to default",
-        'Change': "Change",
+            // POPUPS
+            'Reset to default': "Reset to default",
+            'Change': "Change",
 
-        'Config values': "Config values",
-        'Config Editor': "Config Editor",
+            'Config values': "Config values",
+            'Config Editor': "Config Editor",
 
-        'Simulation': "Simulation",
-        'Simulate': "Simulate",
+            'Simulation': "Simulation",
+            'Simulate': "Simulate",
 
-        'Change seed': "Change seed",
-        'Seed_Explanation': "A \"seed\" is a unique combination of letters that determines random events during your playthrough. It gets reset after every ascension.",
-        'Your current seed is: %1': "Your current seed is: %1",
-        'Enter new seed:': "Enter new seed:",
+            'Change seed': "Change seed",
+            'Seed_Explanation': "A \"seed\" is a unique combination of letters that determines random events during your playthrough. It gets reset after every ascension.",
+            'Your current seed is: %1': "Your current seed is: %1",
+            'Enter new seed:': "Enter new seed:",
 
-        'Lock': "Lock",
-        'Unlock': "Unlock",
-        'Lock Achievement': "Lock Achievement",
-        'Unlock Achievement': "Unlock Achievement",
-        'Enter name of the achievement (Case Sensitive):': "Enter name of the achievement (Case Sensitive):",
+            'Lock': "Lock",
+            'Unlock': "Unlock",
+            'Lock Achievement': "Lock Achievement",
+            'Unlock Achievement': "Unlock Achievement",
+            'Enter name of the achievement (Case Sensitive):': "Enter name of the achievement (Case Sensitive):",
 
-        // <3
-        'Made by x8c8r with love <3': "Made by x8c8r with love <3"
-    })
+            // <3
+            'Made by x8c8r with love <3': "Made by x8c8r with love <3"
+        })
 
-ModLanguage("RU",
-    {
-        // SECTIONS
-        'Conveniences': "Удобности",
-        "Hacks": "Хаки",
-        "Game Progress": "Прогресс",
-        "Fun/Cosmetic": "Веселье/Косметическое",
-        "Mod Options": "Опции Мода",
+    ModLanguage("RU",
+        {
+            // SECTIONS
+            'Conveniences': "Удобности",
+            "Hacks": "Хаки",
+            "Game Progress": "Прогресс",
+            "Fun/Cosmetic": "Веселье/Косметическое",
+            "Mod Options": "Опции Мода",
 
-        // CONVENIENCES
-        'Reload': "Перезапуск",
-        'Reload_tip': "Перезапускает игру",
+            // CONVENIENCES
+            'Reload': "Перезапуск",
+            'Reload_tip': "Перезапускает игру",
 
-        'Unlock Steam Achievements': "Разблокировать Достижения Steam",
-        'Unlock Steam Achievements_tip': "Позволяет получать достижения Steam",
+            'Unlock Steam Achievements': "Разблокировать Достижения Steam",
+            'Unlock Steam Achievements_tip': "Позволяет получать достижения Steam",
 
-        'Open Sesame': "Открыть Сезам",
-        'Open Sesame_tip': "Открывает Сезам",
+            'Open Sesame': "Открыть Сезам",
+            'Open Sesame_tip': "Открывает Сезам",
 
-        'Sleep': "Уснуть",
-        'Sleep_tip': "Переводит игру в режим сна",
+            'Sleep': "Уснуть",
+            'Sleep_tip': "Переводит игру в режим сна",
 
-        'Update Menus': "Обновить Меню",
-        'Update Menus_tip': "Заставляет игру обновить меню",
+            'Update Menus': "Обновить Меню",
+            'Update Menus_tip': "Заставляет игру обновить меню",
 
-        'Ungift out': "Обездарить",
-        'Ungift out_tip': "Убирает дебафф 'Подарок дарен'",
+            'Ungift out': "Обездарить",
+            'Ungift out_tip': "Убирает дебафф 'Подарок дарен'",
 
-        // HACKS
-        'Cheat (zero) cookies': "Приготовить читерское печенье",
-        'Cheat (zero) cookies_tip': "Разблокирует достижение 'У читерского печенья ужасный вкус'",
+            // HACKS
+            'Cheat (zero) cookies': "Приготовить читерское печенье",
+            'Cheat (zero) cookies_tip': "Разблокирует достижение 'У читерского печенья ужасный вкус'",
 
-        'Join Third-Party': "Присоединиться к третьей стороне",
-        'Join Third-Party_tip': "Разблокирует достижение 'Сторонний'",
+            'Join Third-Party': "Присоединиться к третьей стороне",
+            'Join Third-Party_tip': "Разблокирует достижение 'Сторонний'",
 
-        'Unlock Achievement': "Разблокировать достижение",
-        'Unlock Achievement_tip': "Разблокировает любое достижение",
+            'Unlock Achievement': "Разблокировать достижение",
+            'Unlock Achievement_tip': "Разблокировает любое достижение",
 
-        'Lock Achievement': "Заблокировать достижение",
-        'Lock Achievement_tip': "Заблокировает любое достижение",
+            'Lock Achievement': "Заблокировать достижение",
+            'Lock Achievement_tip': "Заблокировает любое достижение",
 
-        // GAME PROGRESS
-        'Sync Achievements': "Синхронизировать Достижения",
-        'Sync Achievements_tip': "Заставляет Steam перевыдать ваши достижения",
+            // GAME PROGRESS
+            'Sync Achievements': "Синхронизировать Достижения",
+            'Sync Achievements_tip': "Заставляет Steam перевыдать ваши достижения",
 
-        'Finish Research': "Завершить исследование",
-        'Finish Research_tip': "Завершает текущее исследование",
+            'Finish Research': "Завершить исследование",
+            'Finish Research_tip': "Завершает текущее исследование",
 
-        'Change Seed': "Поменять сид",
-        'Change Seed_tip': "Меняет сид текущего прохождения (больше информации в окне)",
+            'Change Seed': "Поменять сид",
+            'Change Seed_tip': "Меняет сид текущего прохождения (больше информации в окне)",
 
-        'Simulate Cookies': "Симуляция Печенья",
-        'Simulate Cookies_tip': "Симулирует производство печенья (в часах)",
+            'Simulate Cookies': "Симуляция Печенья",
+            'Simulate Cookies_tip': "Симулирует производство печенья (в часах)",
 
-        // FUN/COSMETIC
-        'Webification': "Вебификация",
-        'Webification_tip': "Переключает вещи из Веб версии",
+            // FUN/COSMETIC
+            'Webification': "Вебификация",
+            'Webification_tip': "Переключает вещи из Веб версии",
 
-        'Additional Statistics': "Дополнительная Статистика",
-        'Additional Statistics_tip': "Переключает доп. статистику в меню статистики",
+            'Additional Statistics': "Дополнительная Статистика",
+            'Additional Statistics_tip': "Переключает доп. статистику в меню статистики",
 
-        // MOD OPTIONS
-        'Show Notifications': "Показывать Уведомления",
-        'Show Notifications_tip': "Переключает уведомления снизу экрана когда вы используете функции мода",
+            // MOD OPTIONS
+            'Show Notifications': "Показывать Уведомления",
+            'Show Notifications_tip': "Переключает уведомления снизу экрана когда вы используете функции мода",
 
-        'Edit Config': "Изменить Конфиг",
-        'Edit Config_tip': "Напрямую измените конфиг Game Manager",
+            'Edit Config': "Изменить Конфиг",
+            'Edit Config_tip': "Напрямую измените конфиг Game Manager",
 
-        // ADDITIONAL STATS
-        'Additional_section': "Дополнительные",
-        'Session Clicks': "Количество кликов (данная сессия)",
-        'Missed Golden Cookies': "Пропущенные золотые печенья",
-        'Seed': "Сид",
+            // ADDITIONAL STATS
+            'Additional_section': "Дополнительные",
+            'Session Clicks': "Количество кликов (данная сессия)",
+            'Missed Golden Cookies': "Пропущенные золотые печенья",
+            'Seed': "Сид",
 
-        // CONFIG VALUES
-        'Additional Stats_config': "Стоит-ли отображать доп. статистику",
-        'Show Notis_config': "Стоит-ли отображать уведомления",
-        'Webify_config': "Следует-ли включать вещи из веб версии",
+            // CONFIG VALUES
+            'Additional Stats_config': "Стоит-ли отображать доп. статистику",
+            'Show Notis_config': "Стоит-ли отображать уведомления",
+            'Webify_config': "Следует-ли включать вещи из веб версии",
 
-        // NOTIFICATIONS
-        'Restarting the game!': "Перезапускаю игру!",
+            // NOTIFICATIONS
+            'Restarting the game!': "Перезапускаю игру!",
 
-        'Timing out the game!': "Засыпаю игру!",
+            'Timing out the game!': "Засыпаю игру!",
 
-        'Enabling Steam achievements!': "Включаю достижения Steam!",
-        'Steam achievements were already enabled.': "Достижения Steam уже были включены.",
-        'Forcing the game to update menus!': "Заставляю игру обновить меню!",
+            'Enabling Steam achievements!': "Включаю достижения Steam!",
+            'Steam achievements were already enabled.': "Достижения Steam уже были включены.",
+            'Forcing the game to update menus!': "Заставляю игру обновить меню!",
 
-        'Removing "Gifted out"!': "Убираю \"Подарок дарен\"!",
+            'Removing "Gifted out"!': "Убираю \"Подарок дарен\"!",
 
-        'Opening the sesame!': "Открываю Сезам!",
-        'Open Sesame!': "Сезам Откройся!",
+            'Opening the sesame!': "Открываю Сезам!",
+            'Open Sesame!': "Сезам Откройся!",
 
-        'Unlocking "Cheated cookies taste awful"!': "Разблокироваю 'У читерского печенья ужасный вкус'!",
-        '"Cheated cookies taste awful" is already unlocked.': "'У читерского печенья ужасный вкус' уже разблокировано.",
+            'Unlocking "Cheated cookies taste awful"!': "Разблокироваю 'У читерского печенья ужасный вкус'!",
+            '"Cheated cookies taste awful" is already unlocked.': "'У читерского печенья ужасный вкус' уже разблокировано.",
 
-        'Unlocking "Third-party"!': "Разблокироваю 'Сторонний'!",
-        '"Third-party" is already unlocked.': "'Сторонний' уже разюлокировано.",
+            'Unlocking "Third-party"!': "Разблокироваю 'Сторонний'!",
+            '"Third-party" is already unlocked.': "'Сторонний' уже разюлокировано.",
 
-        'Enter an achievement name!': "Введите название достижения!",
-        'Achievement %1 does not exist.': "Достижение  %1 не существует.",
-        'Achievement %1 was already unlocked.': "Достижение %1 уже было разблокировано.",
-        'Unlocking achievement %1!': "Разблокироваю достижение %1!",
-        'Achievement %1 was already locked.': "Достижение %1 уже было заблокировано.",
-        'Locking achievement %1!': "Блокирую достижение %1!",
+            'Enter an achievement name!': "Введите название достижения!",
+            'Achievement %1 does not exist.': "Достижение  %1 не существует.",
+            'Achievement %1 was already unlocked.': "Достижение %1 уже было разблокировано.",
+            'Unlocking achievement %1!': "Разблокироваю достижение %1!",
+            'Achievement %1 was already locked.': "Достижение %1 уже было заблокировано.",
+            'Locking achievement %1!': "Блокирую достижение %1!",
 
-        'Changing seed to: %1': "Меняю сид на: %1",
+            'Changing seed to: %1': "Меняю сид на: %1",
 
-        'Toggling the Web features!': "Переключаю Веб-вещи!",
+            'Toggling the Web features!': "Переключаю Веб-вещи!",
 
-        'Toggling additional stats!': "Переключаю доп. статистики!",
+            'Toggling additional stats!': "Переключаю доп. статистики!",
 
-        'Syncing achievements!': "Синхронизирую достижения!",
+            'Syncing achievements!': "Синхронизирую достижения!",
 
-        'Finishing the research!': "Завершаю исследование!",
-        'No research is being conducted.': "Никакое исследование не проводится.",
-        'Simulated %1 hours worth of CpS!': "Симулирую %1 часов печ/с!",
+            'Finishing the research!': "Завершаю исследование!",
+            'No research is being conducted.': "Никакое исследование не проводится.",
+            'Simulated %1 hours worth of CpS!': "Симулирую %1 часов печ/с!",
 
-        'Notifications: %1!': "Уведомления: %1!",
+            'Notifications: %1!': "Уведомления: %1!",
 
-        'Loaded Game Manager!': "Game Manager загружен!",
-        'Version %1': "Версия %1",
+            'Loaded Game Manager!': "Game Manager загружен!",
+            'Version %1': "Версия %1",
 
-        // POPUPS
-        'Change': "Поменять",
-        'Reset to default': "Сбросить",
+            // POPUPS
+            'Change': "Поменять",
+            'Reset to default': "Сбросить",
 
-        'Config values': "Значения конфига",
-        'Config Editor': "Редактор Конфига",
+            'Config values': "Значения конфига",
+            'Config Editor': "Редактор Конфига",
 
-        'Simulation': "Симуляция",
-        'Simulate': "Симулировать",
+            'Simulation': "Симуляция",
+            'Simulate': "Симулировать",
 
-        'Change seed': "Поменять сид",
-        'Seed_Explanation': "\"Сид\" - это уникальная комбинация букв, которая определяет случайные события во время игры. Сид сбрасыватеся каждое восхождение.",
-        'Your current seed is: %1': "Ваш текущий сид: %1",
-        'Enter new seed:': "Введите новый сид:",
+            'Change seed': "Поменять сид",
+            'Seed_Explanation': "\"Сид\" - это уникальная комбинация букв, которая определяет случайные события во время игры. Сид сбрасыватеся каждое восхождение.",
+            'Your current seed is: %1': "Ваш текущий сид: %1",
+            'Enter new seed:': "Введите новый сид:",
 
-        'Lock': "Заблокировать",
-        'Unlock': "Разблокировать",
-        'Lock Achievement': "Заблокировать Достижение",
-        'Unlock Achievement': "Разблокировать Достижение",
-        'Enter name of the achievement (Case Sensitive):': "Введите имя достижения (С учетом регистра):",
+            'Lock': "Заблокировать",
+            'Unlock': "Разблокировать",
+            'Lock Achievement': "Заблокировать Достижение",
+            'Unlock Achievement': "Разблокировать Достижение",
+            'Enter name of the achievement (Case Sensitive):': "Введите имя достижения (С учетом регистра):",
 
-        // <3
+            // <3
 
-        'Made by x8c8r with love <3': "Сделано x8c8r с любовью <3"
-    })
+            'Made by x8c8r with love <3': "Сделано x8c8r с любовью <3"
+        })
+}
