@@ -675,10 +675,8 @@ GM.load = function (str) {
     GMConfig.update();
 }
 
-Game.registerMod('x8c8r.gameManager', GM);
-
-GM.initLoc = function() {
 // LANGUAGE
+GM.initLoc = function() {
     ModLanguage("*",
         {
             // SECTIONS
@@ -976,3 +974,6 @@ GM.initLoc = function() {
             'Made by x8c8r with love <3': "Сделано x8c8r с любовью <3"
         })
 }
+
+// at long last
+Game.registerMod('x8c8r.gameManager', GM);
